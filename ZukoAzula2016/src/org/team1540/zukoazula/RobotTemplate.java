@@ -14,7 +14,7 @@ public class RobotTemplate implements FRCApplication {
 
     @Override
     public void setupRobot() {
-        Logger.info("CHEEP CHEEP");
+        Logger.info("🐣 CHEEP CHEEP 🐣");
 
         // Currently for Valkyrie
         FloatOutput left = FRC.talon(4, FRC.MOTOR_FORWARD).combine(FRC.talon(5, FRC.MOTOR_REVERSE)).combine(FRC.talon(6, FRC.MOTOR_FORWARD));
