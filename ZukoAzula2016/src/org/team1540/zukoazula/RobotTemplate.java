@@ -18,10 +18,5 @@ public class RobotTemplate implements FRCApplication {
         Logger.info("🐣 CHEEP CHEEP 🐣");
 
         DriveCode.initDriveCode();
-//        // Currently for Valkyrie
-//        FloatOutput left = FRC.talon(4, FRC.MOTOR_FORWARD).combine(FRC.talon(5, FRC.MOTOR_REVERSE)).combine(FRC.talon(6, FRC.MOTOR_FORWARD));
-//        FloatOutput right = FRC.talon(1, FRC.MOTOR_REVERSE).combine(FRC.talon(2, FRC.MOTOR_REVERSE)).combine(FRC.talon(3, FRC.MOTOR_REVERSE));
-//        Drive.tank(FRC.joystick1.axisY().negated(), FRC.joystick1.axis(6).negated(), left, right);
-//        new BooleanCell(FRC.solenoid(1)).toggleWhen(FRC.joystick1.onPress(1));
     }
 }
