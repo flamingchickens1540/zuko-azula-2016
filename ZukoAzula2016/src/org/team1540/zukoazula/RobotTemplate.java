@@ -15,7 +15,7 @@ public class RobotTemplate implements FRCApplication {
 
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
-        Logger.info("ðŸ�£ CHEEP CHEEP ðŸ�£");
+        Logger.info("🐣 CHEEP CHEEP 🐣");
 
         DriveCode.initDriveCode();
 //        // Currently for Valkyrie
