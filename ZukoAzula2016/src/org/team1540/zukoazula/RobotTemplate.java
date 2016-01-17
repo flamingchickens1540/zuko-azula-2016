@@ -17,6 +17,6 @@ public class RobotTemplate implements FRCApplication {
     public void setupRobot() throws ExtendedMotorFailureException {
         Logger.info("🐣 CHEEP CHEEP 🐣");
 
-        DriveCode.initDriveCode();
+        DriveCode.setupDrive();
     }
 }
