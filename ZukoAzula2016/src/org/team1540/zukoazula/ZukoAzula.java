@@ -11,7 +11,7 @@ import ccre.frc.FRCApplication;
 import ccre.log.Logger;
 import ccre.tuning.TuningContext;
 
-public class RobotTemplate implements FRCApplication {
+public class ZukoAzula implements FRCApplication {
 
     public static final int TEAM_NUMBER = 1540;
 

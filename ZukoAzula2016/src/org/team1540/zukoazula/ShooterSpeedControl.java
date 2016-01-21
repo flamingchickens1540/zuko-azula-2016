@@ -21,12 +21,12 @@ public class ShooterSpeedControl {
     private static final FloatCell velocity = new FloatCell();
 
     public static void setup() throws ExtendedMotorFailureException {
-        shooting = RobotTemplate.controlBinding.addBoolean("Shoot");
+        shooting = ZukoAzula.controlBinding.addBoolean("Shoot");
         shooterMotor = shooterCAN.simpleControl();
         EventInput shootingPressed = shooting.onPress();
         gearTooth = FRC.encoder(0, 0, false, shootingPressed);
         velocityOf(gearTooth, shootingPressed).send(velocity);
-        shooting.toFloat(0, (bangBangControl(velocity, RobotTemplate.mainTuning.getFloat("Shooter Velocity Target", 1), 0, 1))).send(shooterMotor);
+        shooting.toFloat(0, (bangBangControl(velocity, ZukoAzula.mainTuning.getFloat("Shooter Velocity Target", 1), 0, 1))).send(shooterMotor);
         Cluck.publish("Shooter Velocity", velocity.asInput());
         Cluck.publish("Shooter Motor", shooterMotor);
     }
