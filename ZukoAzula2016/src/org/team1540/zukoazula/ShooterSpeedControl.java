@@ -1,6 +1,7 @@
 package org.team1540.zukoazula;
 
 import ccre.channel.BooleanInput;
+import ccre.channel.DerivedFloatInput;
 import ccre.channel.EventCell;
 import ccre.channel.EventInput;
 import ccre.channel.FloatCell;
@@ -18,38 +19,29 @@ public class ShooterSpeedControl {
     private static FloatOutput shooterMotor;
     private static FloatInput gearTooth;
 
-    private static final FloatCell velocity = new FloatCell();
-
     public static void setup() throws ExtendedMotorFailureException {
         shooting = ZukoAzula.controlBinding.addBoolean("Shoot");
         shooterMotor = shooterCAN.simpleControl();
-        EventInput shootingPressed = shooting.onPress();
-        gearTooth = FRC.encoder(0, 0, false, shootingPressed);
-        velocityOf(gearTooth, shootingPressed).send(velocity);
-        shooting.toFloat(0, (bangBangControl(velocity, ZukoAzula.mainTuning.getFloat("Shooter Velocity Target", 1), 0, 1))).send(shooterMotor);
-        Cluck.publish("Shooter Velocity", velocity.asInput());
+        gearTooth = FRC.counter(0, 1, FRC.startTele);
+        bangBangControl(gearTooth, shooting, ZukoAzula.mainTuning.getFloat("Shooter Velocity Target", 1), 0, 1).send(shooterMotor);
         Cluck.publish("Shooter Motor", shooterMotor);
     }
 
-    public static FloatInput velocityOf(FloatInput input, EventInput start) {
-        FloatCell lastTime = new FloatCell(Time.currentTimeNanos());
-        FloatCell lastTicks = new FloatCell();
-        FloatCell velocity = new FloatCell();
-        start.send(() -> {
-            lastTicks.set(gearTooth.get());
-            lastTime.set(Time.currentTimeNanos());
-        });
-        input.onChange().send(() -> {
-            long currentTime = Time.currentTimeNanos();
-            float currentTicks = input.get();
-            velocity.set((currentTicks - lastTicks.get()) / ((currentTime - lastTime.get()) / Time.NANOSECONDS_PER_SECOND));
-            lastTime.set(currentTime);
-            lastTicks.set(currentTicks);
-        });
-        return velocity;
-    }
+    public static FloatInput bangBangControl(FloatInput input, BooleanInput trigger, FloatInput target, float low, float high) {
+        FloatInput velocity = new DerivedFloatInput(input, trigger.onPress()) {
+            float lastTicks = input.get();
+            long lastTime = Time.currentTimeNanos();
 
-    public static FloatInput bangBangControl(FloatInput input, FloatInput target, float low, float high) {
-        return velocity.atMost(target).toFloat(low, high);
+            @Override
+            protected float apply() {
+                long currentTime = Time.currentTimeNanos();
+                float currentTicks = input.get();
+                float result = (currentTicks - lastTicks) / ((currentTime - lastTime) / (float) Time.NANOSECONDS_PER_SECOND);
+                lastTime = currentTime;
+                lastTicks = currentTicks;
+                return result;
+            }
+        };
+        return trigger.toFloat(0, velocity.atMost(target).toFloat(low, high));
     }
 }
