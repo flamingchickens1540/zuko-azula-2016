@@ -29,7 +29,7 @@ public class DriveCode {
     private static final Behavior pit = behaviors.addBehavior("Pit Mode", ZukoAzula.mainTuning.getBoolean("Pit Mode Enable", false));
 
     public static void setup() throws ExtendedMotorFailureException {
-        leftInput.attach(teleop, driveLeftAxis.minus(driveLeftTrigger.minus(driveRightTrigger)));
+        leftInput.attach(teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         rightInput.attach(teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         leftInput.attach(pit, FloatInput.zero);
         rightInput.attach(pit, FloatInput.zero);
