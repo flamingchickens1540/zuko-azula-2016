@@ -3,6 +3,7 @@ package org.team1540.zukoazula;
 import ccre.behaviors.ArbitratedFloat;
 import ccre.behaviors.Behavior;
 import ccre.behaviors.BehaviorArbitrator;
+import ccre.channel.BooleanCell;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
@@ -26,7 +27,8 @@ public class DriveCode {
     private static final ArbitratedFloat leftInput = behaviors.addFloat();
     private static final ArbitratedFloat rightInput = behaviors.addFloat();
     private static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode());
-    private static final Behavior pit = behaviors.addBehavior("Pit Mode", ZukoAzula.mainTuning.getBoolean("Pit Mode Enable", false));
+    private static final BooleanCell pitModeEnable = new BooleanCell();
+    private static final Behavior pit = behaviors.addBehavior("Pit Mode", pitModeEnable.andNot(FRC.isOnFMS()));
 
     public static void setup() throws ExtendedMotorFailureException {
         leftInput.attach(teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
@@ -46,5 +48,6 @@ public class DriveCode {
         Cluck.publish("Drive Backwards Raw", driveLeftTrigger);
         Cluck.publish("Drive Left Motors", leftInput);
         Cluck.publish("Drive Right Motors", rightInput);
+        Cluck.publish("Pit Mode Enable", pitModeEnable);
     }
 }
