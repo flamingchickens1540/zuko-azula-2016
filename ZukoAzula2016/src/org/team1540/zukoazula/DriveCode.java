@@ -14,8 +14,8 @@ import ccre.frc.FRC;
 
 public class DriveCode {
 
-    private static final FloatInput driveLeftAxis = ZukoAzula.controlBinding.addFloat("Drive Left Axis").deadzone(0.2f);
-    private static final FloatInput driveRightAxis = ZukoAzula.controlBinding.addFloat("Drive Right Axis").deadzone(0.2f);
+    private static final FloatInput driveLeftAxis = ZukoAzula.controlBinding.addFloat("Drive Left Axis").deadzone(0.2f).negated();
+    private static final FloatInput driveRightAxis = ZukoAzula.controlBinding.addFloat("Drive Right Axis").deadzone(0.2f).negated();
     private static final FloatInput driveRightTrigger = ZukoAzula.controlBinding.addFloat("Drive Forwards Trigger").deadzone(0.2f);
     private static final FloatInput driveLeftTrigger = ZukoAzula.controlBinding.addFloat("Drive Backwards Trigger").deadzone(0.2f);
 
@@ -29,7 +29,7 @@ public class DriveCode {
     private static final Behavior pit = behaviors.addBehavior("Pit Mode", ZukoAzula.mainTuning.getBoolean("Pit Mode Enable", false));
 
     public static void setup() throws ExtendedMotorFailureException {
-        leftInput.attach(teleop, driveLeftAxis.plus(driveLeftTrigger.minus(driveRightTrigger)));
+        leftInput.attach(teleop, driveLeftAxis.minus(driveLeftTrigger.minus(driveRightTrigger)));
         rightInput.attach(teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         leftInput.attach(pit, FloatInput.zero);
         rightInput.attach(pit, FloatInput.zero);

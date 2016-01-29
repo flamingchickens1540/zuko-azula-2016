@@ -20,7 +20,7 @@ public class ZukoAzula implements FRCApplication {
 
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
-        Logger.info("ðŸ�£ CHEEP CHEEP ðŸ�£");
+        Logger.info("🐣 CHEEP CHEEP 🐣");
 
         DriveCode.setup();
         ShooterSpeedControl.setup();
