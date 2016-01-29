@@ -34,8 +34,11 @@ public class DriveCode {
         leftInput.attach(pit, FloatInput.zero);
         rightInput.attach(pit, FloatInput.zero);
 
-        leftInput.send(leftFrontCAN.simpleControl(FRC.MOTOR_FORWARD).combine(leftBackCAN.simpleControl(FRC.MOTOR_FORWARD)).addRamping(0.1f, FRC.constantPeriodic));
-        rightInput.send(rightFrontCAN.simpleControl(FRC.MOTOR_REVERSE).combine(rightBackCAN.simpleControl(FRC.MOTOR_REVERSE)).addRamping(0.1f, FRC.constantPeriodic));
+        FloatOutput leftMotors = leftFrontCAN.simpleControl(FRC.MOTOR_FORWARD).combine(leftBackCAN.simpleControl(FRC.MOTOR_FORWARD));
+        FloatOutput rightMotors = rightFrontCAN.simpleControl(FRC.MOTOR_REVERSE).combine(rightBackCAN.simpleControl(FRC.MOTOR_REVERSE));
+
+        leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
+        rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
 
         Cluck.publish("Drive Left Raw", driveLeftAxis);
         Cluck.publish("Drive Right Raw", driveRightAxis);
