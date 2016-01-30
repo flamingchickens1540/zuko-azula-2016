@@ -20,8 +20,8 @@ public class DriveCode {
     private static final FloatInput driveRightTrigger = ZukoAzula.controlBinding.addFloat("Drive Forwards Trigger").deadzone(0.2f);
     private static final FloatInput driveLeftTrigger = ZukoAzula.controlBinding.addFloat("Drive Backwards Trigger").deadzone(0.2f);
 
-    private static final ExtendedMotor rightFrontCAN = FRC.talonCAN(2), rightBackCAN = FRC.talonCAN(3);
-    private static final ExtendedMotor leftFrontCAN = FRC.talonCAN(0), leftBackCAN = FRC.talonCAN(1);
+    private static final ExtendedMotor[] rightCANs = new ExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
+    private static final ExtendedMotor[] leftCANs = new ExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
 
     private static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Drive Code");
     private static final ArbitratedFloat leftInput = behaviors.addFloat();
@@ -36,8 +36,8 @@ public class DriveCode {
         leftInput.attach(pit, FloatInput.zero);
         rightInput.attach(pit, FloatInput.zero);
 
-        FloatOutput leftMotors = leftFrontCAN.simpleControl(FRC.MOTOR_FORWARD).combine(leftBackCAN.simpleControl(FRC.MOTOR_FORWARD));
-        FloatOutput rightMotors = rightFrontCAN.simpleControl(FRC.MOTOR_REVERSE).combine(rightBackCAN.simpleControl(FRC.MOTOR_REVERSE));
+        FloatOutput leftMotors = FloatOutput.combine(simpleAll(leftCANs, FRC.MOTOR_FORWARD));
+        FloatOutput rightMotors = FloatOutput.combine(simpleAll(rightCANs, FRC.MOTOR_REVERSE));
 
         leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
@@ -49,5 +49,13 @@ public class DriveCode {
         Cluck.publish("Drive Left Motors", leftInput);
         Cluck.publish("Drive Right Motors", rightInput);
         Cluck.publish("Pit Mode Enable", pitModeEnable);
+    }
+
+    private static FloatOutput[] simpleAll(ExtendedMotor[] cans, boolean reverse) throws ExtendedMotorFailureException {
+        FloatOutput[] outs = new FloatOutput[cans.length];
+        for (int i = 0; i < cans.length; i++) {
+            outs[i] = cans[i].simpleControl(reverse);
+        }
+        return outs;
     }
 }
