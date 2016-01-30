@@ -18,12 +18,14 @@ import ccre.time.Time;
 public class Shooter {
     private static final ExtendedMotor shooterLeftCAN = FRC.talonCAN(10);
     private static final ExtendedMotor shooterRightCAN = FRC.talonCAN(11);
-    private static FloatInput encoder = FRC.encoder(0, 1, false, FRC.startTele);
+    private static final FloatInput encoder = FRC.encoder(0, 1, false, FRC.startTele);
 
-    private static ArbitratedBoolean shooterTrigger = ZukoAzula.behaviors.addBoolean();
+    private static final ArbitratedBoolean shooterTrigger = ZukoAzula.behaviors.addBoolean();
 
     public static void setup() throws ExtendedMotorFailureException {
-        shooterTrigger.attach(ZukoAzula.teleop, ZukoAzula.controlBinding.addBoolean("Shoot"));
+        BooleanInput trigger = ZukoAzula.controlBinding.addBoolean("Shoot");
+        shooterTrigger.attach(ZukoAzula.teleop, trigger);
+        shooterTrigger.attach(ZukoAzula.pit, trigger);
         FloatOutput shooterMotors = shooterLeftCAN.simpleControl(FRC.MOTOR_FORWARD).combine(shooterRightCAN.simpleControl(FRC.MOTOR_REVERSE));
         bangBangControl(encoder, shooterTrigger, ZukoAzula.mainTuning.getFloat("Shooter Velocity", 1), 0, 1).send(shooterMotors);
         Cluck.publish("Shooter Motors", shooterMotors);
