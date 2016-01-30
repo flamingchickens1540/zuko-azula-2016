@@ -1,8 +1,6 @@
 package org.team1540.zukoazula;
 
 import ccre.behaviors.ArbitratedFloat;
-import ccre.behaviors.Behavior;
-import ccre.behaviors.BehaviorArbitrator;
 import ccre.channel.BooleanCell;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
@@ -23,18 +21,14 @@ public class DriveCode {
     private static final ExtendedMotor rightFrontCAN = FRC.talonCAN(2), rightBackCAN = FRC.talonCAN(3);
     private static final ExtendedMotor leftFrontCAN = FRC.talonCAN(0), leftBackCAN = FRC.talonCAN(1);
 
-    private static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Drive Code");
-    private static final ArbitratedFloat leftInput = behaviors.addFloat();
-    private static final ArbitratedFloat rightInput = behaviors.addFloat();
-    private static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode());
-    private static final BooleanCell pitModeEnable = new BooleanCell();
-    private static final Behavior pit = behaviors.addBehavior("Pit Mode", pitModeEnable.andNot(FRC.isOnFMS()));
+    private static final ArbitratedFloat leftInput = ZukoAzula.behaviors.addFloat();
+    private static final ArbitratedFloat rightInput = ZukoAzula.behaviors.addFloat();
 
     public static void setup() throws ExtendedMotorFailureException {
-        leftInput.attach(teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
-        rightInput.attach(teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
-        leftInput.attach(pit, FloatInput.zero);
-        rightInput.attach(pit, FloatInput.zero);
+        leftInput.attach(ZukoAzula.teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
+        rightInput.attach(ZukoAzula.teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
+        leftInput.attach(ZukoAzula.pit, FloatInput.zero);
+        rightInput.attach(ZukoAzula.pit, FloatInput.zero);
 
         FloatOutput leftMotors = leftFrontCAN.simpleControl(FRC.MOTOR_FORWARD).combine(leftBackCAN.simpleControl(FRC.MOTOR_FORWARD));
         FloatOutput rightMotors = rightFrontCAN.simpleControl(FRC.MOTOR_REVERSE).combine(rightBackCAN.simpleControl(FRC.MOTOR_REVERSE));
@@ -48,6 +42,5 @@ public class DriveCode {
         Cluck.publish("Drive Backwards Raw", driveLeftTrigger);
         Cluck.publish("Drive Left Motors", leftInput);
         Cluck.publish("Drive Right Motors", rightInput);
-        Cluck.publish("Pit Mode Enable", pitModeEnable);
     }
 }
