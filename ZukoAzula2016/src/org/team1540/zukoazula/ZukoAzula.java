@@ -16,8 +16,6 @@ import ccre.tuning.TuningContext;
 
 public class ZukoAzula implements FRCApplication {
 
-    public static final int TEAM_NUMBER = 1540;
-
     public static final ControlBindingCreator controlBinding = FRC.controlBinding();
     public static final TuningContext mainTuning = new TuningContext("MainTuning").publishSavingEvent();
 
