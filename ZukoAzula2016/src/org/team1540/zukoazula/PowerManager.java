@@ -1,5 +1,6 @@
 package org.team1540.zukoazula;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,13 +16,15 @@ import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.frc.FRC;
 
 public class PowerManager {
-    private static Map<Integer, List<FloatCell>> filters = new HashMap<Integer, List<FloatCell>>();;
+    private static Map<Integer, List<FloatCell>> filters = new HashMap<Integer, List<FloatCell>>();
 
     public static FloatCell spikePeak = new FloatCell(150);
     public static FloatCell spikeLength = new FloatCell(2);
 
     public static FloatOutput managePower(int priority, FloatOutput motor) {
         FloatCell filter = new FloatCell(1);
+        if (filters.get(priority) == null)
+            filters.put(priority, new ArrayList<FloatCell>());
         filters.get(priority).add(filter);
         return (float value) -> {
             motor.set(value * filter.get());
