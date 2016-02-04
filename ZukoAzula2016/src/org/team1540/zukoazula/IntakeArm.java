@@ -18,7 +18,7 @@ public class IntakeArm {
     private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated();
     private static final BooleanInput intakeArmRollerToggle = ZukoAzula.controlBinding.addToggleButton("Intake Arm Rollers Toggle");
 
-    public static void setupIntakeArm() throws ExtendedMotorFailureException {
+    public static void setup() throws ExtendedMotorFailureException {
         intakeArmAxis.send(intakeArmCAN.simpleControl());
         FloatOutput rollerOutput = intakeArmRollerCAN.simpleControl();
         intakeArmRollerToggle.send((value) -> {

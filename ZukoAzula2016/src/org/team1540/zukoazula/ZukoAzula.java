@@ -32,6 +32,7 @@ public class ZukoAzula implements FRCApplication {
 
         DriveCode.setup();
         Shooter.setup();
+        IntakeArm.setup();
 
         Cluck.publish("Pit Mode Enable", pitModeEnable);
     }
