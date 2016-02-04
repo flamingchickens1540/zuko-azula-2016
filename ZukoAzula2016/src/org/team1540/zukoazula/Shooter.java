@@ -12,40 +12,43 @@ import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
+import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 import ccre.time.Time;
 
 public class Shooter {
-    private static final ExtendedMotor shooterLeftCAN = FRC.talonCAN(10);
-    private static final ExtendedMotor shooterRightCAN = FRC.talonCAN(11);
-    private static final FloatInput encoder = FRC.encoder(0, 1, false, FRC.startTele);
-
-    private static final ArbitratedBoolean shooterTrigger = ZukoAzula.behaviors.addBoolean();
-
     public static void setup() throws ExtendedMotorFailureException {
-        BooleanInput trigger = ZukoAzula.controlBinding.addBoolean("Shoot");
-        shooterTrigger.attach(ZukoAzula.teleop, trigger);
-        shooterTrigger.attach(ZukoAzula.pit, trigger);
-        FloatOutput shooterMotors = shooterLeftCAN.simpleControl(FRC.MOTOR_FORWARD).combine(shooterRightCAN.simpleControl(FRC.MOTOR_REVERSE));
-        bangBangControl(encoder, shooterTrigger, ZukoAzula.mainTuning.getFloat("Shooter Velocity", 1), 0, 1).send(shooterMotors);
-        Cluck.publish("Shooter Motors", shooterMotors);
+        TalonExtendedMotor talons = makeTalons();
+
+        FloatOutput motors = talons.simpleControl();
+        Cluck.publish("Shooter Motors", motors);
+
+        FloatInput velocity = talons.modEncoder().getEncoderVelocity();
+        Cluck.publish("Shooter Velocity", velocity);
+
+        bangBangControl(velocity, makeTrigger(), "Shooter").send(motors);
     }
 
-    public static FloatInput bangBangControl(FloatInput input, BooleanInput trigger, FloatInput target, float low, float high) {
-        FloatInput velocity = new DerivedFloatInput(input, trigger.onPress()) {
-            float lastTicks = input.get();
-            long lastTime = Time.currentTimeNanos();
+    private static TalonExtendedMotor makeTalons() {
+        TalonExtendedMotor talonLeft = FRC.talonCAN(10);
 
-            @Override
-            protected float apply() {
-                long currentTime = Time.currentTimeNanos();
-                float currentTicks = input.get();
-                float result = (currentTicks - lastTicks) / ((currentTime - lastTime) / (float) Time.NANOSECONDS_PER_SECOND);
-                lastTime = currentTime;
-                lastTicks = currentTicks;
-                return result;
-            }
-        };
-        return trigger.toFloat(0, velocity.atMost(target).toFloat(low, high));
+        TalonExtendedMotor talonRight = FRC.talonCAN(11);
+        talonRight.modGeneralConfig().configureReversed(false, true);
+        talonRight.modGeneralConfig().activateFollowerMode(talonLeft);
+
+        return talonLeft;
+    }
+
+    private static BooleanInput makeTrigger() {
+        BooleanInput trigger = ZukoAzula.controlBinding.addBoolean("Shoot");
+        ArbitratedBoolean shooterTrigger = ZukoAzula.behaviors.addBoolean();
+        shooterTrigger.attach(ZukoAzula.teleop, trigger);
+        shooterTrigger.attach(ZukoAzula.pit, trigger);
+        return shooterTrigger;
+    }
+
+    private static FloatInput bangBangControl(FloatInput velocity, BooleanInput trigger, String name) {
+        BooleanInput isBelowVelocity = velocity.atMost(ZukoAzula.mainTuning.getFloat(name + " Target Velocity", 1));
+        return trigger.and(isBelowVelocity).toFloat(0.0f, ZukoAzula.mainTuning.getFloat(name + " Maximum Voltage", 1));
     }
 }
