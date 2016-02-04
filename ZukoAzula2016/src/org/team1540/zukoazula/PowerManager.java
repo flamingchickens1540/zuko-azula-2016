@@ -1,6 +1,7 @@
 package org.team1540.zukoazula;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,16 +15,16 @@ import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.frc.FRC;
 
 public class PowerManager {
-    private static Map<Integer, List<FloatCell>> filters;
+    private static Map<Integer, List<FloatCell>> filters = new HashMap<Integer, List<FloatCell>>();;
 
     public static FloatCell spikePeak = new FloatCell(150);
     public static FloatCell spikeLength = new FloatCell(2);
 
     public static FloatOutput managePower(int priority, FloatOutput motor) {
-        filters.get(priority).add(new FloatCell(1));
-        int index = filters.get(priority).size();
+        FloatCell filter = new FloatCell(1);
+        filters.get(priority).add(filter);
         return (float value) -> {
-            motor.set(filters.get(priority).get(index).get());
+            motor.set(value * filter.get());
         };
     }
 
@@ -44,9 +45,9 @@ public class PowerManager {
             }
         });
     }
-    
+
     private static float priorityToReduction(int priority) {
-        return (float)Math.pow(priority * (100/5), 2);
+        return (float) Math.pow(priority / 5, 2);
     }
 }
 
