@@ -57,7 +57,8 @@ public class Shooter {
     }
 
     private static BooleanInput setupRollersForSpinup(BooleanInput spinup, BooleanInput fire) throws ExtendedMotorFailureException {
-        BooleanInput rollbackInterlude = quickPauseTimer("Roller Rollback Duration", 100, spinup.onPress());
+        PauseTimer rollbackInterlude = new PauseTimer(ZukoAzula.mainTuning.getFloat("Roller Rollback Duration", 0.1f));
+        spinup.onPress().send(rollbackInterlude);
 
         // TODO: what if race condition?
         Behavior spinupBehavior = rollerArb.addBehavior("Spin Up", spinup);
@@ -68,11 +69,5 @@ public class Shooter {
         rollerSpeed.attach(rollbackBehavior, ZukoAzula.mainTuning.getFloat("Roller Rollback Speed", -0.1f));
 
         return rollerArb.getIsActive(spinupBehavior);
-    }
-
-    private static BooleanInput quickPauseTimer(String name, long default_millis, EventInput start) {
-        PauseTimer pt = new PauseTimer(ZukoAzula.mainTuning.getFloat(name, default_millis / 1000f));
-        start.send(pt);
-        return pt;
     }
 }
