@@ -33,7 +33,7 @@ public class Shooter {
         // passively roll to the wheel in teleop, while the shooter is stopped.
         rollerSpeed.attach(rollerArb.addBehavior("Passive Roll", FRC.inTeleopMode().and(shooter.isStopped)), ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f));
 
-        PauseTimer actuallyFiring = new PauseTimer(500);
+        PauseTimer actuallyFiring = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Fire Delay", 0.5f));
         // TODO: take robot modes into account
         BooleanInput warmup = ZukoAzula.controlBinding.addBoolean("Shooter Warm-Up");
         BooleanInput fire = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
@@ -57,22 +57,22 @@ public class Shooter {
     }
 
     private static BooleanInput setupRollersForSpinup(BooleanInput spinup, BooleanInput fire) throws ExtendedMotorFailureException {
-        BooleanInput interlude = quickPauseTimer(100, spinup.onPress());
+        BooleanInput rollbackInterlude = quickPauseTimer("Roller Rollback Duration", 100, spinup.onPress());
 
         // TODO: what if race condition?
         Behavior spinupBehavior = rollerArb.addBehavior("Spin Up", spinup);
         Behavior fireBehavior = rollerArb.addBehavior("Fire", fire);
-        Behavior interludeBehavior = rollerArb.addBehavior("Interlude", interlude);
+        Behavior rollbackBehavior = rollerArb.addBehavior("Interlude", rollbackInterlude);
         rollerSpeed.attach(spinupBehavior, FloatInput.zero);
         rollerSpeed.attach(fireBehavior, ZukoAzula.mainTuning.getFloat("Roller Fire Speed", 1f));
-        rollerSpeed.attach(interludeBehavior, ZukoAzula.mainTuning.getFloat("Roller Interlude Speed", -0.1f));
+        rollerSpeed.attach(rollbackBehavior, ZukoAzula.mainTuning.getFloat("Roller Rollback Speed", -0.1f));
 
         return rollerArb.getIsActive(spinupBehavior);
     }
 
-    private static BooleanInput quickPauseTimer(int delay, EventInput onPress) {
-        PauseTimer pt = new PauseTimer(delay);
-        onPress.send(pt);
+    private static BooleanInput quickPauseTimer(String name, long default_millis, EventInput start) {
+        PauseTimer pt = new PauseTimer(ZukoAzula.mainTuning.getFloat(name, default_millis / 1000f));
+        start.send(pt);
         return pt;
     }
 }

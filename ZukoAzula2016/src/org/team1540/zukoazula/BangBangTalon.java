@@ -15,6 +15,7 @@ public class BangBangTalon {
     private final String name;
     public final FloatInput velocity, speed;
     public final BooleanInput isStopped, isUpToSpeed;
+    private final FloatInput targetSpeed;
 
     public BangBangTalon(TalonExtendedMotor tem, String name) {
         this.tem = tem;
@@ -26,7 +27,7 @@ public class BangBangTalon {
         isStopped = this.speed.atMost(ZukoAzula.mainTuning.getFloat(name + " Maximum Stop Speed", 0.1f));
         Cluck.publish(name + " Is Stopped", isStopped);
 
-        FloatInput targetSpeed = ZukoAzula.mainTuning.getFloat(name + " Target Speed", 1f);
+        this.targetSpeed = ZukoAzula.mainTuning.getFloat(name + " Target Speed", 1f);
         FloatInput allowedVariance = ZukoAzula.mainTuning.getFloat(name + " Allowed Variance", 0.1f);
 
         isUpToSpeed = getThreeState(velocity.atLeast(targetSpeed), velocity.atMost(targetSpeed.minus(allowedVariance.absolute())));
@@ -39,8 +40,12 @@ public class BangBangTalon {
 
             @Override
             protected synchronized boolean apply() {
-                state |= forceTrue.get();
-                state &= !forceFalse.get();
+                if (forceTrue.get()) {
+                    state = true;
+                }
+                if (forceFalse.get()) {
+                    state = false;
+                }
                 return state;
             }
         };
@@ -55,7 +60,7 @@ public class BangBangTalon {
     }
 
     public void setup(BooleanInput activate) throws ExtendedMotorFailureException {
-        BooleanInput isBelowVelocity = velocity.atMost(ZukoAzula.mainTuning.getFloat(name + " Target Velocity", 1));
+        BooleanInput isBelowVelocity = velocity.atMost(targetSpeed);
         FloatInput control = activate.and(isBelowVelocity).toFloat(0.0f, ZukoAzula.mainTuning.getFloat(name + " Maximum Voltage", 1));
         control = wrapForTests(name + " Motor", control);
         control.send(tem.simpleControl());
