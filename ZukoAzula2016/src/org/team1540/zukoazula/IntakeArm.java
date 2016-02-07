@@ -13,7 +13,7 @@ import ccre.frc.FRC;
 public class IntakeArm {
     private static final TalonExtendedMotor intakeArmCAN = FRC.talonCAN(9);
     private static final TalonExtendedMotor intakeArmRollerCAN = FRC.talonCAN(11);
-    private static final FloatInput encoder = intakeArmCAN.modEncoder().getEncoderVelocity();
+    private static final FloatInput encoder = intakeArmCAN.modEncoder().getEncoderPosition();
 
     private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated();
     private static final BooleanInput intakeArmRollerToggle = ZukoAzula.controlBinding.addToggleButton("Intake Arm Rollers Enable");
