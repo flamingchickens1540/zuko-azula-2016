@@ -39,10 +39,19 @@ public class Shooter {
         BooleanInput fire = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
         BooleanInput spinup = warmup.or(fire).or(actuallyFiring);
 
+        EventInput intakeArmRollerForward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Forward");
+        EventInput intakeArmRollerBackward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Backward");
+        EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
+
+        FloatCell rollerOutput = new FloatCell();
+        rollerOutput.setWhen(1, intakeArmRollerForward);
+        rollerOutput.setWhen(0, intakeArmRollerStop);
+        rollerOutput.setWhen(-1, intakeArmRollerBackward);
+
         BooleanCell usingIntake = new BooleanCell();
-        usingIntake.setTrueWhen(IntakeArm.intakeArmRollerBackward.or(IntakeArm.intakeArmRollerForward));
-        usingIntake.setFalseWhen(IntakeArm.intakeArmRollerStop.or(spinup.onPress()));
-        rollerSpeed.attach(rollerArb.addBehavior("Using Intake", usingIntake), IntakeArm.rollerOutput);
+        usingIntake.setTrueWhen(intakeArmRollerBackward.or(intakeArmRollerForward));
+        usingIntake.setFalseWhen(intakeArmRollerStop.or(spinup.onPress()));
+        rollerSpeed.attach(rollerArb.addBehavior("Using Intake", usingIntake), rollerOutput);
 
         BooleanInput shouldSpinUp = setupRollersForSpinup(spinup, actuallyFiring);
 
