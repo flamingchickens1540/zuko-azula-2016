@@ -40,8 +40,8 @@ public class Portcullis {
         leftInput.attach(ZukoAzula.pit, control.plus(pid));
         rightInput.attach(ZukoAzula.pit, control.minus(pid));
 
-        leftInput.send(leftGrabMotor.simpleControl().addRamping(0.1f, FRC.constantPeriodic));
-        rightInput.send(rightGrabMotor.simpleControl().addRamping(0.1f, FRC.constantPeriodic));
+        leftInput.send(leftGrabMotor.simpleControl());
+        rightInput.send(rightGrabMotor.simpleControl());
 
     }
 
