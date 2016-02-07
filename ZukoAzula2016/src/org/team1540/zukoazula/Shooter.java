@@ -30,28 +30,20 @@ public class Shooter {
 
         BangBangTalon shooter = new BangBangTalon(makeLinkedTalons(), "Shooter");
 
-        // passively roll to the wheel in teleop, while the shooter is stopped.
-        rollerSpeed.attach(rollerArb.addBehavior("Passive Roll", FRC.inTeleopMode().and(shooter.isStopped)), ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f));
-
         PauseTimer actuallyFiring = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Fire Delay", 0.5f));
         // TODO: take robot modes into account
         BooleanInput warmup = ZukoAzula.controlBinding.addBoolean("Shooter Warm-Up");
         BooleanInput fire = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
         BooleanInput spinup = warmup.or(fire).or(actuallyFiring);
 
-        EventInput intakeArmRollerForward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Forward");
-        EventInput intakeArmRollerBackward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Backward");
-        EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
+        FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
 
-        FloatCell rollerOutput = new FloatCell();
-        rollerOutput.setWhen(1, intakeArmRollerForward);
-        rollerOutput.setWhen(0, intakeArmRollerStop);
-        rollerOutput.setWhen(-1, intakeArmRollerBackward);
+        FloatCell indexerNotShooting = new FloatCell();
+        indexerNotShooting.setWhen(indexerIntakeSpeed, IntakeArm.intakeArmRollerForward);
+        indexerNotShooting.setWhen(ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f), IntakeArm.intakeArmRollerStop.or(spinup.onRelease()).or(FRC.startTele));
+        indexerNotShooting.setWhen(indexerIntakeSpeed.negated(), IntakeArm.intakeArmRollerBackward);
 
-        BooleanCell usingIntake = new BooleanCell();
-        usingIntake.setTrueWhen(intakeArmRollerBackward.or(intakeArmRollerForward));
-        usingIntake.setFalseWhen(intakeArmRollerStop.or(spinup.onRelease()));
-        rollerSpeed.attach(rollerArb.addBehavior("Using Intake", usingIntake), rollerOutput);
+        rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)), indexerNotShooting);
 
         BooleanInput shouldSpinUp = setupRollersForSpinup(spinup, actuallyFiring);
 
