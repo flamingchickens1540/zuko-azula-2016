@@ -26,11 +26,12 @@ public class ZukoAzula implements FRCApplication {
 
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
-        Logger.info("🐣 CHEEP CHEEP 🐣");
+        Logger.info("ðŸ�£ CHEEP CHEEP ðŸ�£");
 
         DriveCode.setup();
         Shooter.setup();
-
+        Portcullis.setup();
+        
         Cluck.publish("Pit Mode Enable", pitModeEnable);
     }
 }
