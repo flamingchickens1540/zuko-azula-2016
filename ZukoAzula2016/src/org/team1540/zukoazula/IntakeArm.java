@@ -12,19 +12,11 @@ import ccre.frc.FRC;
 
 public class IntakeArm {
     private static final TalonExtendedMotor intakeArmCAN = FRC.talonCAN(9);
-    private static final TalonExtendedMotor intakeArmRollerCAN = FRC.talonCAN(7);
     private static final FloatInput encoder = intakeArmCAN.modEncoder().getEncoderPosition();
 
     private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated();
-    public static final EventInput intakeArmRollerForward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Forward");
-    public static final EventInput intakeArmRollerBackward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Backward");
-    public static final EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
 
     public static void setup() throws ExtendedMotorFailureException {
         intakeArmAxis.send(intakeArmCAN.simpleControl());
-        FloatOutput rollerOutput = intakeArmRollerCAN.simpleControl();
-        rollerOutput.setWhen(1, intakeArmRollerForward);
-        rollerOutput.setWhen(0, intakeArmRollerStop);
-        rollerOutput.setWhen(-1, intakeArmRollerBackward);
     }
 }

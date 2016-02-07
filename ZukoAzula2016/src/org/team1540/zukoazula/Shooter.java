@@ -15,6 +15,7 @@ import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
+import ccre.ctrl.StateMachine;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 import ccre.time.Time;
@@ -24,6 +25,8 @@ import ccre.timers.PauseTimer;
 public class Shooter {
     private static final BehaviorArbitrator rollerArb = new BehaviorArbitrator("Rollers");
     private static final ArbitratedFloat rollerSpeed = rollerArb.addFloat();
+
+    private static final TalonExtendedMotor intakeArmRollerCAN = FRC.talonCAN(7);
 
     public static void setup() throws ExtendedMotorFailureException {
         rollerSpeed.send(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
@@ -36,12 +39,27 @@ public class Shooter {
         BooleanInput fire = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
         BooleanInput spinup = warmup.or(fire).or(actuallyFiring);
 
-        FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
+        EventInput intakeArmRollerForward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Forward");
+        EventInput intakeArmRollerBackward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Backward");
+        EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
 
-        FloatCell indexerNotShooting = new FloatCell();
-        indexerNotShooting.setWhen(indexerIntakeSpeed, IntakeArm.intakeArmRollerForward);
-        indexerNotShooting.setWhen(ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f), IntakeArm.intakeArmRollerStop.or(spinup.onRelease()).or(FRC.startTele));
-        indexerNotShooting.setWhen(indexerIntakeSpeed.negated(), IntakeArm.intakeArmRollerBackward);
+        StateMachine states = new StateMachine(0, "passive", "forward", "backward");
+        states.setStateWhen("passive", intakeArmRollerStop.or(spinup.onRelease()).or(FRC.startTele));
+        states.setStateWhen("forward", intakeArmRollerForward);
+        states.setStateWhen("backward", intakeArmRollerBackward);
+
+        FloatOutput rollerOutput = intakeArmRollerCAN.simpleControl();
+        rollerOutput.setWhen(1, states.onEnterState("forward"));
+        rollerOutput.setWhen(0, states.onEnterState("passive"));
+        rollerOutput.setWhen(-1, states.onEnterState("backward"));
+
+        FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
+        FloatInput indexerPassiveSpeed = ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f);
+
+        FloatCell indexerNotShooting = new FloatCell(indexerPassiveSpeed.get());
+        indexerNotShooting.setWhen(indexerIntakeSpeed, states.onEnterState("forward"));
+        indexerNotShooting.setWhen(indexerPassiveSpeed, states.onEnterState("passive"));
+        indexerNotShooting.setWhen(indexerIntakeSpeed.negated(), states.onEnterState("backward"));
 
         rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)), indexerNotShooting);
 
