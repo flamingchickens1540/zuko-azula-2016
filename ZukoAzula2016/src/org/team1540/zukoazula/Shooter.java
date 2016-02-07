@@ -44,22 +44,17 @@ public class Shooter {
         EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
 
         StateMachine states = new StateMachine(0, "passive", "forward", "backward");
-        states.setStateWhen("passive", intakeArmRollerStop.or(spinup.onRelease()).or(FRC.startTele));
-        states.setStateWhen("forward", intakeArmRollerForward);
-        states.setStateWhen("backward", intakeArmRollerBackward);
+        states.setStateWhen("passive", intakeArmRollerStop.or(spinup.onPress()).or(FRC.startTele));
+        states.setStateWhen("forward", intakeArmRollerForward.andNot(spinup));
+        states.setStateWhen("backward", intakeArmRollerBackward.andNot(spinup));
 
-        FloatOutput rollerOutput = intakeArmRollerCAN.simpleControl();
-        rollerOutput.setWhen(1, states.onEnterState("forward"));
-        rollerOutput.setWhen(0, states.onEnterState("passive"));
-        rollerOutput.setWhen(-1, states.onEnterState("backward"));
+        states.getIsState("passive").toFloat(states.getIsState("forward").toFloat(-1, 1), 0).send(intakeArmRollerCAN.simpleControl());
 
         FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
         FloatInput indexerPassiveSpeed = ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f);
 
         FloatCell indexerNotShooting = new FloatCell(indexerPassiveSpeed.get());
-        indexerNotShooting.setWhen(indexerIntakeSpeed, states.onEnterState("forward"));
-        indexerNotShooting.setWhen(indexerPassiveSpeed, states.onEnterState("passive"));
-        indexerNotShooting.setWhen(indexerIntakeSpeed.negated(), states.onEnterState("backward"));
+        states.getIsState("passive").toFloat(states.getIsState("forward").toFloat(indexerIntakeSpeed.negated(), indexerIntakeSpeed), indexerPassiveSpeed).send(indexerNotShooting);
 
         rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)), indexerNotShooting);
 
