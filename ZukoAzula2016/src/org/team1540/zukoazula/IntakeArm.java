@@ -16,11 +16,15 @@ public class IntakeArm {
     private static final FloatInput encoder = intakeArmCAN.modEncoder().getEncoderPosition();
 
     private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated();
-    private static final BooleanInput intakeArmRollerToggle = ZukoAzula.controlBinding.addToggleButton("Intake Arm Rollers Enable");
-    private static final BooleanInput intakeArmRollerDirectionToggle = ZukoAzula.controlBinding.addToggleButton("Intake Arm Rollers Direction");
-    
+    private static final EventInput intakeArmRollerForward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Forward");
+    private static final EventInput intakeArmRollerBackward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Backward");
+    private static final EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
+
     public static void setup() throws ExtendedMotorFailureException {
         intakeArmAxis.send(intakeArmCAN.simpleControl());
-        intakeArmRollerToggle.toFloat(0, 1).multipliedBy(intakeArmRollerDirectionToggle.toFloat(1, -1)).send(intakeArmRollerCAN.simpleControl());
+        FloatOutput rollerOutput = intakeArmRollerCAN.simpleControl();
+        rollerOutput.setWhen(1, intakeArmRollerForward);
+        rollerOutput.setWhen(0, intakeArmRollerStop);
+        rollerOutput.setWhen(-1, intakeArmRollerBackward);
     }
 }
