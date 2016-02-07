@@ -31,13 +31,14 @@ public class Portcullis {
         Cluck.publish("Portcullis Left Angle", leftEncoder);
         Cluck.publish("Portcullis Right Angle", rightEncoder);
 
-        PIDController pid = PIDController.createFixed(FRC.constantPeriodic, leftEncoder.asInput(), rightEncoder.asInput(), ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.7f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0f).get());
-        pid.setOutputBounds(0.3f);
+        PIDController pid = PIDController.createFixed(FRC.constantPeriodic, leftEncoder.asInput(), rightEncoder.asInput(), 
+                ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.7f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0f).get());
+        pid.setOutputBounds(ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.3f));
 
         leftInput.attach(ZukoAzula.teleop, control.plus(pid));
         rightInput.attach(ZukoAzula.teleop, control.minus(pid));
-        leftInput.attach(ZukoAzula.pit, control.minus(pid));
-        rightInput.attach(ZukoAzula.pit, control);
+        leftInput.attach(ZukoAzula.pit, control.plus(pid));
+        rightInput.attach(ZukoAzula.pit, control.minus(pid));
 
         leftInput.send(leftGrabMotor.simpleControl().addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightGrabMotor.simpleControl().addRamping(0.1f, FRC.constantPeriodic));
