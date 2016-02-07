@@ -50,7 +50,7 @@ public class Shooter {
 
         BooleanCell usingIntake = new BooleanCell();
         usingIntake.setTrueWhen(intakeArmRollerBackward.or(intakeArmRollerForward));
-        usingIntake.setFalseWhen(intakeArmRollerStop.or(spinup.onPress()));
+        usingIntake.setFalseWhen(intakeArmRollerStop.or(spinup.onRelease()));
         rollerSpeed.attach(rollerArb.addBehavior("Using Intake", usingIntake), rollerOutput);
 
         BooleanInput shouldSpinUp = setupRollersForSpinup(spinup, actuallyFiring);
