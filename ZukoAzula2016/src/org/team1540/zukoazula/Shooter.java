@@ -53,10 +53,8 @@ public class Shooter {
         FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
         FloatInput indexerPassiveSpeed = ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f);
 
-        FloatCell indexerNotShooting = new FloatCell(indexerPassiveSpeed.get());
-        states.getIsState("passive").toFloat(indexerIntakeSpeed.negatedIf(states.getIsState("backward")), indexerPassiveSpeed).send(indexerNotShooting);
-
-        rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)), indexerNotShooting);
+        rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)),
+                states.getIsState("passive").toFloat(indexerIntakeSpeed.negatedIf(states.getIsState("backward")), indexerPassiveSpeed));
 
         BooleanInput shouldSpinUp = setupRollersForSpinup(spinup, actuallyFiring);
 
