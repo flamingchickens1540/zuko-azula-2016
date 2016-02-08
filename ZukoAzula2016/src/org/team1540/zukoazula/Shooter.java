@@ -54,7 +54,7 @@ public class Shooter {
         FloatInput indexerPassiveSpeed = ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f);
 
         FloatCell indexerNotShooting = new FloatCell(indexerPassiveSpeed.get());
-        states.getIsState("passive").toFloat(states.getIsState("forward").toFloat(indexerIntakeSpeed.negated(), indexerIntakeSpeed), indexerPassiveSpeed).send(indexerNotShooting);
+        states.getIsState("passive").toFloat(indexerIntakeSpeed.negatedIf(states.getIsState("backward")), indexerPassiveSpeed).send(indexerNotShooting);
 
         rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)), indexerNotShooting);
 
