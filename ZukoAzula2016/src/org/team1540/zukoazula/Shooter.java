@@ -15,6 +15,7 @@ import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
+import ccre.ctrl.StateMachine;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 import ccre.time.Time;
@@ -25,19 +26,35 @@ public class Shooter {
     private static final BehaviorArbitrator rollerArb = new BehaviorArbitrator("Rollers");
     private static final ArbitratedFloat rollerSpeed = rollerArb.addFloat();
 
+    private static final TalonExtendedMotor intakeArmRollerCAN = FRC.talonCAN(7);
+
     public static void setup() throws ExtendedMotorFailureException {
         rollerSpeed.send(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
 
         BangBangTalon shooter = new BangBangTalon(makeLinkedTalons(), "Shooter");
-
-        // passively roll to the wheel in teleop, while the shooter is stopped.
-        rollerSpeed.attach(rollerArb.addBehavior("Passive Roll", FRC.inTeleopMode().and(shooter.isStopped)), ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f));
 
         PauseTimer actuallyFiring = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Fire Delay", 0.5f));
         // TODO: take robot modes into account
         BooleanInput warmup = ZukoAzula.controlBinding.addBoolean("Shooter Warm-Up");
         BooleanInput fire = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
         BooleanInput spinup = warmup.or(fire).or(actuallyFiring);
+
+        EventInput intakeArmRollerForward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Forward");
+        EventInput intakeArmRollerBackward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Backward");
+        EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
+
+        StateMachine states = new StateMachine(0, "passive", "forward", "backward");
+        states.setStateWhen("passive", intakeArmRollerStop.or(spinup.onPress()).or(FRC.startTele));
+        states.setStateWhen("forward", intakeArmRollerForward.andNot(spinup));
+        states.setStateWhen("backward", intakeArmRollerBackward.andNot(spinup));
+
+        states.getIsState("passive").toFloat(states.getIsState("forward").toFloat(-1, 1), 0).send(intakeArmRollerCAN.simpleControl());
+
+        FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
+        FloatInput indexerPassiveSpeed = ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f);
+
+        rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)),
+                states.getIsState("passive").toFloat(indexerIntakeSpeed.negatedIf(states.getIsState("backward")), indexerPassiveSpeed));
 
         BooleanInput shouldSpinUp = setupRollersForSpinup(spinup, actuallyFiring);
 
