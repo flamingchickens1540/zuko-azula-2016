@@ -6,9 +6,12 @@ import ccre.behaviors.Behavior;
 import ccre.behaviors.BehaviorArbitrator;
 import ccre.channel.BooleanCell;
 import ccre.channel.BooleanInput;
+import ccre.channel.DerivedEventInput;
 import ccre.channel.DerivedFloatInput;
+import ccre.channel.DerivedUpdate;
 import ccre.channel.EventCell;
 import ccre.channel.EventInput;
+import ccre.channel.EventOutput;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
@@ -17,10 +20,14 @@ import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.ctrl.StateMachine;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
+import ccre.drivers.ctre.talon.TalonSRX;
 import ccre.frc.FRC;
+import ccre.frc.FRCImplementation;
+import ccre.frc.FRCImplementationHolder;
 import ccre.time.Time;
 import ccre.timers.ExpirationTimer;
 import ccre.timers.PauseTimer;
+import ccre.timers.Ticker;
 
 public class Shooter {
     private static final BehaviorArbitrator rollerArb = new BehaviorArbitrator("Rollers");
@@ -64,13 +71,13 @@ public class Shooter {
     }
 
     private static TalonExtendedMotor makeLinkedTalons() {
-        TalonExtendedMotor talonLeft = FRC.talonCAN(10);
-
         TalonExtendedMotor talonRight = FRC.talonCAN(11);
-        talonRight.modGeneralConfig().configureReversed(false, true);
-        talonRight.modGeneralConfig().activateFollowerMode(talonLeft);
 
-        return talonLeft;
+        TalonExtendedMotor talonLeft = FRC.talonCAN(10);
+        talonLeft.modGeneralConfig().configureReversed(false, true);
+        talonLeft.modGeneralConfig().activateFollowerMode(talonRight);
+
+        return talonRight;
     }
 
     private static BooleanInput setupRollersForSpinup(BooleanInput spinup, BooleanInput fire) throws ExtendedMotorFailureException {

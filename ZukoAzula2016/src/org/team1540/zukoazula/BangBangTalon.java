@@ -5,7 +5,9 @@ import ccre.channel.BooleanInput;
 import ccre.channel.DerivedBooleanInput;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
+import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
+import ccre.ctrl.ExtendedMotor.OutputControlMode;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
@@ -27,7 +29,7 @@ public class BangBangTalon {
         isStopped = this.speed.atMost(ZukoAzula.mainTuning.getFloat(name + " Maximum Stop Speed", 0.1f));
         Cluck.publish(name + " Is Stopped", isStopped);
 
-        this.targetSpeed = ZukoAzula.mainTuning.getFloat(name + " Target Speed", 1f);
+        this.targetSpeed = ZukoAzula.mainTuning.getFloat(name + " Target Speed", 150f);
         FloatInput allowedVariance = ZukoAzula.mainTuning.getFloat(name + " Allowed Variance", 0.1f);
 
         isUpToSpeed = getThreeState(velocity.atLeast(targetSpeed), velocity.atMost(targetSpeed.minus(allowedVariance.absolute())));
@@ -61,8 +63,13 @@ public class BangBangTalon {
 
     public void setup(BooleanInput activate) throws ExtendedMotorFailureException {
         BooleanInput isBelowVelocity = velocity.atMost(targetSpeed);
-        FloatInput control = activate.and(isBelowVelocity).toFloat(0.0f, ZukoAzula.mainTuning.getFloat(name + " Maximum Voltage", 1));
+        FloatInput control = activate.and(isBelowVelocity).toFloat(0.0f, ZukoAzula.mainTuning.getFloat(name + " Maximum Voltage", 12.0f));
         control = wrapForTests(name + " Motor", control);
-        control.send(tem.simpleControl());
+        FloatOutput output = tem.asMode(OutputControlMode.VOLTAGE_FIXED);
+        if (output == null) {
+            throw new ExtendedMotorFailureException("VOLTAGE_FIXED mode not supported!");
+        }
+        tem.enable();
+        control.send(output);
     }
 }
