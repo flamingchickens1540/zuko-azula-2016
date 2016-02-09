@@ -17,6 +17,7 @@ import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotor;
+import ccre.ctrl.ExtendedMotor.OutputControlMode;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.ctrl.StateMachine;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
@@ -33,14 +34,12 @@ public class Shooter {
     private static final BehaviorArbitrator rollerArb = new BehaviorArbitrator("Rollers");
     private static final ArbitratedFloat rollerSpeed = rollerArb.addFloat();
 
-    private static final TalonExtendedMotor intakeArmRollerCAN = FRC.talonCAN(7);
-
     public static void setup() throws ExtendedMotorFailureException {
         rollerSpeed.send(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
 
-        BangBangTalon shooter = new BangBangTalon(makeLinkedTalons(), "Shooter");
+        PIDTalon shooter = new PIDTalon(makeLinkedTalons(), "Shooter");
 
-        PauseTimer actuallyFiring = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Fire Delay", 0.5f));
+        PauseTimer actuallyFiring = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Fire Delay", 2f));
         // TODO: take robot modes into account
         BooleanInput warmup = ZukoAzula.controlBinding.addBoolean("Shooter Warm-Up");
         BooleanInput fire = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
@@ -55,7 +54,7 @@ public class Shooter {
         states.setStateWhen("forward", intakeArmRollerForward.andNot(spinup));
         states.setStateWhen("backward", intakeArmRollerBackward.andNot(spinup));
 
-        states.getIsState("passive").toFloat(states.getIsState("forward").toFloat(-1, 1), 0).send(intakeArmRollerCAN.simpleControl());
+        states.getIsState("passive").toFloat(states.getIsState("forward").toFloat(-1, 1), 0).send(FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD));
 
         FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
         FloatInput indexerPassiveSpeed = ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f);
