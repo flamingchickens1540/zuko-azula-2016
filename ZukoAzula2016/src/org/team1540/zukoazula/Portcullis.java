@@ -31,17 +31,19 @@ public class Portcullis {
         Cluck.publish("Portcullis Left Angle", leftEncoder);
         Cluck.publish("Portcullis Right Angle", rightEncoder);
 
-        PIDController pid = PIDController.createFixed(FRC.constantPeriodic, leftEncoder.asInput(), rightEncoder.asInput(), 
-                ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.7f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0f).get());
-        pid.setOutputBounds(ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.3f));
+        PIDController pid = PIDController.createFixed(FRC.duringTele, leftEncoder.asInput(), rightEncoder.asInput().negated(), 
+                ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.05f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0f).get());
+        pid.setOutputBounds(ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.1f));
 
         leftInput.attach(ZukoAzula.teleop, control.plus(pid));
         rightInput.attach(ZukoAzula.teleop, control.minus(pid));
         leftInput.attach(ZukoAzula.pit, control.plus(pid));
         rightInput.attach(ZukoAzula.pit, control.minus(pid));
 
-        leftInput.send(leftGrabMotor.simpleControl(FRC.MOTOR_FORWARD));
-        rightInput.send(rightGrabMotor.simpleControl(FRC.MOTOR_REVERSE));
+        leftInput.send(leftGrabMotor.simpleControl(FRC.MOTOR_REVERSE));
+        rightInput.send(rightGrabMotor.simpleControl(FRC.MOTOR_FORWARD));
+        
+      
 
     }
 

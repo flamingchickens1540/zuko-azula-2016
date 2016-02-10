@@ -35,7 +35,7 @@ public class Shooter {
     private static final ArbitratedFloat rollerSpeed = rollerArb.addFloat();
 
     public static void setup() throws ExtendedMotorFailureException {
-        rollerSpeed.send(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
+        rollerSpeed.send(FRC.talonSimpleCAN(8, FRC.MOTOR_REVERSE));
 
         PIDTalon shooter = new PIDTalon(makeLinkedTalons(), "Shooter");
 
