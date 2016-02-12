@@ -19,6 +19,7 @@ import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 import ccre.instinct.InstinctModule;
 import ccre.log.LogLevel;
+import ccre.timers.PauseTimer;
 
 public class IntakeArm {
     private static final TalonExtendedMotor intakeArmCAN = FRC.talonCAN(9);
@@ -49,7 +50,13 @@ public class IntakeArm {
 
         EventOutput calibrateArms = armHigh.eventSet(encoder).combine(needsToCalibrate.eventSet(false));
 
-        calibrateArms.on(outputCurrent.atMost(ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", .5f)).onPress().and(calibrating));
+        FloatInput threshold = ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", .5f);
+
+        PauseTimer calibrationTimeout = new PauseTimer(ZukoAzula.mainTuning.getFloat("Intake Arm Calibration Timeout", 3));
+        calibrating.onPress().send(calibrationTimeout);
+        EventInput tookTooLong = calibrationTimeout.onRelease().and(outputCurrent.atMost(threshold));
+
+        calibrateArms.on(outputCurrent.atMost(threshold).onPress().or(tookTooLong).and(calibrating));
 
         control.send(intakeArmCAN.simpleControl());
 
