@@ -7,6 +7,7 @@ import ccre.channel.BooleanCell;
 import ccre.channel.BooleanIO;
 import ccre.channel.BooleanInput;
 import ccre.channel.EventInput;
+import ccre.channel.EventLogger;
 import ccre.channel.EventOutput;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
@@ -17,7 +18,7 @@ import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 import ccre.instinct.InstinctModule;
-import ccre.log.Logger;
+import ccre.log.LogLevel;
 
 public class IntakeArm {
     private static final TalonExtendedMotor intakeArmCAN = FRC.talonCAN(9);
@@ -29,47 +30,34 @@ public class IntakeArm {
     private static final BooleanCell calibrationEnabled = ZukoAzula.mainTuning.getBoolean("Intake Should Calibrate", true);
     private static final BooleanCell needsToCalibrate = new BooleanCell(calibrationEnabled.get());
 
-    private static final FloatCell armLow = ZukoAzula.mainTuning.getFloat("Intake Arm Low Position", 0f);
     private static final FloatCell armHigh = ZukoAzula.mainTuning.getFloat("Intake Arm High Position", 1f);
 
     private static final BehaviorArbitrator armBehaviors = new BehaviorArbitrator("Intake Arm Behaviors");
     private static final ArbitratedFloat control = armBehaviors.addFloat();
 
     public static void setup() throws ExtendedMotorFailureException {
-        FloatInput armPosition = encoder.normalize(armLow, armHigh);
+        FloatInput armPosition = encoder.normalize(armHigh.minus(ZukoAzula.mainTuning.getFloat("Intake Distance Between Encoders", 20)), armHigh);
         BooleanInput tooHigh = armPosition.atLeast(1).and(intakeArmAxis.atLeast(0));
         BooleanInput tooLow = armPosition.atMost(0).and(intakeArmAxis.atMost(0));
         BooleanInput stop = tooHigh.or(tooLow);
 
         control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(intakeArmAxis.multipliedBy(ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .25f)), 0f));
 
-        FloatCell controlDuringCalibration = new FloatCell();
-        control.attach(armBehaviors.addBehavior("calibrating", needsToCalibrate), controlDuringCalibration);
+        BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode()));
 
-        FloatCell calibrationSpeed = ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .1f);
+        control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .1f));
+
         FloatCell threshold = ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", .5f);
 
-        EventOutput calibrateArms = armHigh.eventSet(encoder).combine(armLow.eventSet(encoder.minus(ZukoAzula.mainTuning.getFloat("Intake Distance Between Encoders", 20))).combine(needsToCalibrate.eventSet(false)));
+        EventOutput calibrateArms = armHigh.eventSet(encoder).combine(needsToCalibrate.eventSet(false));
+
+        calibrateArms.on(outputCurrent.atMost(threshold).onPress().and(calibrating));
 
         control.send(intakeArmCAN.simpleControl());
 
-        new InstinctModule(needsToCalibrate.and(FRC.robotEnabled()).and(FRC.inAutonomousMode().or(FRC.inTeleopMode()))) {
-            @Override
-            protected void autonomousMain() throws Throwable {
-                try {
-                    Logger.info("Started Calibrating");
-                    controlDuringCalibration.set(calibrationSpeed.get());
-                    waitUntilAtMost(outputCurrent, threshold.get());
-                } finally {
-                    controlDuringCalibration.set(0);
-                    calibrateArms.event();
-                    Logger.info("Finished Calibrating");
-                }
-            }
-        };
+        EventLogger.log(calibrating.onPress(), LogLevel.INFO, "Started intake arm calibration");
+        EventLogger.log(calibrating.onRelease(), LogLevel.INFO, "Finished intake arm calibration");
 
-        Cluck.publish("Intake Arm Set Low Position", armLow.eventSet(encoder).combine(needsToCalibrate.eventSet(false)));
-        Cluck.publish("Intake Arm Set High Position", armHigh.eventSet(encoder).combine(needsToCalibrate.eventSet(false)));
         Cluck.publish("Intake Arm Calibrate", calibrateArms);
         Cluck.publish("Intake Arm Output Current", outputCurrent);
         Cluck.publish("Intake Arm Encoder", encoder);
