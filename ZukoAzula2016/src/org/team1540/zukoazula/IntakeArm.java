@@ -29,8 +29,7 @@ public class IntakeArm {
 
     private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated().multipliedBy(ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .5f));
 
-    private static final BooleanCell calibrationEnabled = ZukoAzula.mainTuning.getBoolean("Intake Should Calibrate", true);
-    private static final BooleanCell needsToCalibrate = new BooleanCell(calibrationEnabled.get());
+    private static final BooleanCell needsToCalibrate = new BooleanCell(true);
 
     private static final FloatCell armHigh = ZukoAzula.mainTuning.getFloat("Intake Arm High Position", 1f);
 
@@ -61,7 +60,8 @@ public class IntakeArm {
         EventLogger.log(calibrating.onPress(), LogLevel.INFO, "Started intake arm calibration");
         EventLogger.log(calibrating.onRelease(), LogLevel.INFO, "Finished intake arm calibration");
 
-        Cluck.publish("Intake Arm Calibrate", calibrateArms);
+        Cluck.publish("Intake Arm Calibrate", needsToCalibrate.eventSet(true));
+        Cluck.publish("Intake Arm Set High Point", calibrateArms);
         Cluck.publish("Intake Arm Output Current", outputCurrent);
         Cluck.publish("Intake Arm Encoder", encoder);
         Cluck.publish("Intake Arm Position", armPosition);
