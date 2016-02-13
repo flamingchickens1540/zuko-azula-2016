@@ -54,9 +54,7 @@ public class IntakeArm {
 
         EventOutput calibrateArms = armHigh.eventSet(encoder).combine(needsToCalibrate.eventSet(false));
 
-        FloatInput threshold = ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", 4);
-
-        calibrateArms.on(outputCurrent.atLeast(threshold).onPress().and(calibrating));
+        calibrateArms.on(outputCurrent.atLeast(ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", 4)).onPress().and(calibrating));
 
         control.send(intakeArmCAN.simpleControl());
 
