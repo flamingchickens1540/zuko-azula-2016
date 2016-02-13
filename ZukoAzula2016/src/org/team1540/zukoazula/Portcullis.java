@@ -21,28 +21,35 @@ public class Portcullis {
     private static final FloatIO leftEncoder = leftGrabMotor.modEncoder().getEncoderPosition();
     private static final FloatIO rightEncoder = rightGrabMotor.modEncoder().getEncoderPosition();
 
-    private static final FloatInput control = ZukoAzula.controlBinding.addFloat("Portcullis Grabber Axis").deadzone(0.2f);
+    private static final FloatInput control = ZukoAzula.controlBinding.addFloat("Portcullis Grabber Axis").deadzone(0.3f);
 
     private static final ArbitratedFloat leftInput = ZukoAzula.behaviors.addFloat();
     private static final ArbitratedFloat rightInput = ZukoAzula.behaviors.addFloat();
 
+    private static final FloatCell maximumSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Maximum Speed", .3f);
+
     public static void setup() throws ExtendedMotorFailureException {
-        Cluck.publish("Zero Portcullis Encoders", leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)));
+
+        PIDController pid = new PIDController(leftEncoder, rightEncoder.negated(), ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.001f), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0.0f));
+
+        pid.updateWhen(FRC.constantPeriodic);
+        pid.setOutputBounds(ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.2f));
+
+        FloatInput leftOut = control.minus(control.inRange(-0.1f, 0.1f).toFloat(0.0f, pid)).multipliedBy(maximumSpeed);
+        FloatInput rightOut = control.multipliedBy(maximumSpeed);
+
+        leftInput.attach(ZukoAzula.teleop, leftOut);
+        rightInput.attach(ZukoAzula.teleop, rightOut);
+        leftInput.attach(ZukoAzula.pit, leftOut);
+        rightInput.attach(ZukoAzula.pit, rightOut);
+
+        leftInput.send(leftGrabMotor.simpleControl(FRC.MOTOR_REVERSE));
+        rightInput.send(rightGrabMotor.simpleControl(FRC.MOTOR_FORWARD));
+
+        leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)).on(FRC.startAuto.or(FRC.startTele));
+        Cluck.publish("Portcullis Reset Encoders", leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)));
         Cluck.publish("Portcullis Left Angle", leftEncoder);
-        Cluck.publish("Portcullis Right Angle", rightEncoder);
-
-        PIDController pid = PIDController.createFixed(FRC.constantPeriodic, leftEncoder.asInput(), rightEncoder.asInput(), 
-                ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.7f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f).get(), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0f).get());
-        pid.setOutputBounds(ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.3f));
-
-        leftInput.attach(ZukoAzula.teleop, control.plus(pid));
-        rightInput.attach(ZukoAzula.teleop, control.minus(pid));
-        leftInput.attach(ZukoAzula.pit, control.plus(pid));
-        rightInput.attach(ZukoAzula.pit, control.minus(pid));
-
-        leftInput.send(leftGrabMotor.simpleControl(FRC.MOTOR_FORWARD));
-        rightInput.send(rightGrabMotor.simpleControl(FRC.MOTOR_REVERSE));
-
+        Cluck.publish("Portcullis Right Angle", rightEncoder.negated());
+        Cluck.publish("Portcullis PID", (FloatInput) pid);
     }
-
 }
