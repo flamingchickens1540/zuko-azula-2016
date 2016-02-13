@@ -10,6 +10,7 @@ import ccre.channel.EventInput;
 import ccre.channel.EventLogger;
 import ccre.channel.EventOutput;
 import ccre.channel.FloatCell;
+import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
@@ -23,10 +24,10 @@ import ccre.timers.PauseTimer;
 
 public class IntakeArm {
     private static final TalonExtendedMotor intakeArmCAN = FRC.talonCAN(9);
-    private static final FloatInput encoder = intakeArmCAN.modEncoder().getEncoderPosition();
+    private static final FloatIO encoder = intakeArmCAN.modEncoder().getEncoderPosition();
     private static final FloatInput outputCurrent = intakeArmCAN.modFeedback().getOutputCurrent();
 
-    private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated();
+    private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated().multipliedBy(ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .5f));
 
     private static final BooleanCell calibrationEnabled = ZukoAzula.mainTuning.getBoolean("Intake Should Calibrate", true);
     private static final BooleanCell needsToCalibrate = new BooleanCell(calibrationEnabled.get());
@@ -37,26 +38,25 @@ public class IntakeArm {
     private static final ArbitratedFloat control = armBehaviors.addFloat();
 
     public static void setup() throws ExtendedMotorFailureException {
-        FloatInput armPosition = encoder.normalize(armHigh.minus(ZukoAzula.mainTuning.getFloat("Intake Distance Between Encoders", 20)), armHigh);
+        FloatInput armPosition = encoder.normalize(armHigh.minus(ZukoAzula.mainTuning.getFloat("Intake Distance Between Encoders", 2760)), armHigh.minus(ZukoAzula.mainTuning.getFloat("Intake Arm High Position Offset", 100)));
         BooleanInput tooHigh = armPosition.atLeast(1).and(intakeArmAxis.atLeast(0));
         BooleanInput tooLow = armPosition.atMost(0).and(intakeArmAxis.atMost(0));
         BooleanInput stop = tooHigh.or(tooLow);
 
-        control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(intakeArmAxis.multipliedBy(ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .25f)), 0f));
+        control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(intakeArmAxis, 0f));
+
+        FloatInput counteractGravity = ZukoAzula.mainTuning.getFloat("Intake Arm Counteract Gravity Speed", .1f);
+        control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(.5f).and(intakeArmAxis.absolute().atMost(counteractGravity))), counteractGravity);
 
         BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode()));
 
-        control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .1f));
+        control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .3f));
 
         EventOutput calibrateArms = armHigh.eventSet(encoder).combine(needsToCalibrate.eventSet(false));
 
-        FloatInput threshold = ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", .5f);
+        FloatInput threshold = ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", 4);
 
-        PauseTimer calibrationTimeout = new PauseTimer(ZukoAzula.mainTuning.getFloat("Intake Arm Calibration Timeout", 3));
-        calibrating.onPress().send(calibrationTimeout);
-        EventInput tookTooLong = calibrationTimeout.onRelease().and(outputCurrent.atMost(threshold));
-
-        calibrateArms.on(outputCurrent.atMost(threshold).onPress().or(tookTooLong).and(calibrating));
+        calibrateArms.on(outputCurrent.atLeast(threshold).onPress().and(calibrating));
 
         control.send(intakeArmCAN.simpleControl());
 
