@@ -14,6 +14,7 @@ import ccre.channel.EventInput;
 import ccre.channel.EventOutput;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
+import ccre.channel.FloatOperation;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotor;
@@ -31,42 +32,88 @@ import ccre.timers.PauseTimer;
 import ccre.timers.Ticker;
 
 public class Shooter {
-    private static final BehaviorArbitrator rollerArb = new BehaviorArbitrator("Rollers");
-    private static final ArbitratedFloat rollerSpeed = rollerArb.addFloat();
 
     public static void setup() throws ExtendedMotorFailureException {
-        rollerSpeed.send(FRC.talonSimpleCAN(8, FRC.MOTOR_REVERSE));
-
-        PIDTalon shooter = new PIDTalon(makeLinkedTalons(), "Shooter");
-
-        PauseTimer actuallyFiring = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Fire Delay", 2f));
-        // TODO: take robot modes into account
-        BooleanInput warmup = ZukoAzula.controlBinding.addBoolean("Shooter Warm-Up");
-        BooleanInput fire = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
-        BooleanInput spinup = warmup.or(fire).or(actuallyFiring);
-
-        EventInput intakeArmRollerForward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Forward");
-        EventInput intakeArmRollerBackward = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Backward");
-        EventInput intakeArmRollerStop = ZukoAzula.controlBinding.addEvent("Intake Arm Rollers Stop");
-
-        StateMachine states = new StateMachine(0, "passive", "forward", "backward");
-        states.setStateWhen("passive", intakeArmRollerStop.or(spinup.onPress()).or(FRC.startTele));
-        states.setStateWhen("forward", intakeArmRollerForward.andNot(spinup));
-        states.setStateWhen("backward", intakeArmRollerBackward.andNot(spinup));
-
-        states.getIsState("passive").toFloat(states.getIsState("forward").toFloat(-1, 1), 0).send(FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD));
-
-        FloatInput indexerIntakeSpeed = ZukoAzula.mainTuning.getFloat("Indexer Speed During Intake", 1f);
-        FloatInput indexerPassiveSpeed = ZukoAzula.mainTuning.getFloat("Roller Passive Speed", 0.1f);
-
-        rollerSpeed.attach(rollerArb.addBehavior("Not Shooting", FRC.inTeleopMode().and(shooter.isStopped)),
-                states.getIsState("passive").toFloat(indexerIntakeSpeed.negatedIf(states.getIsState("backward")), indexerPassiveSpeed));
-
-        BooleanInput shouldSpinUp = setupRollersForSpinup(spinup, actuallyFiring);
-
-        shooter.setup(shouldSpinUp);
-
-        fire.and(shooter.isUpToSpeed).onPress().send(actuallyFiring);
+        
+        StateMachine flywheelTarget = new StateMachine(0, "off", "passive", "high");
+        TalonExtendedMotor flywheel = makeLinkedTalons();
+        FloatInput flywheelSpeed = flywheel.modEncoder().getEncoderVelocity().absolute();
+        flywheelTarget.setState("passive");
+        
+        StateMachine flywheelActual = new StateMachine(0, "off", "passive", "high");
+        flywheelActual.setStateWhen("off", 
+                flywheelSpeed.inRange(FloatInput.zero, 
+                        ZukoAzula.mainTuning.getFloat("Shooter Max Off Speed", 100))
+                        .onPress());
+        
+        flywheelActual.setStateWhen("passive", flywheelSpeed.inRange(500.0f, 9999.0f).onPress());
+        flywheelActual.setStateWhen("high", flywheelSpeed.atLeast(10000.0f).onPress());
+                
+        flywheel.simpleControl().setWhen(0.0f, FRC.duringTele.and(flywheelTarget.getIsState("off")));
+        flywheel.simpleControl().setWhen(-0.1f, FRC.duringTele.and(flywheelTarget.getIsState("passive")));
+        flywheel.simpleControl().setWhen(1.0f, FRC.duringTele.and(flywheelTarget.getIsState("high")));
+        
+        Cluck.publish("Flywheel State O", flywheelActual.getIsState("off"));
+        Cluck.publish("Flywheel State L", flywheelActual.getIsState("passive"));
+        Cluck.publish("Flywheel State H", flywheelActual.getIsState("high"));
+        Cluck.publish("Flywheel State Target O", flywheelTarget.getIsState("off"));
+        Cluck.publish("Flywheel State Target L", flywheelTarget.getIsState("passive"));
+        Cluck.publish("Flywheel State Target H", flywheelTarget.getIsState("high"));
+        Cluck.publish("Flywheel Speed", flywheel.modEncoder().getEncoderVelocity());
+        
+        BooleanInput inhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Inhale");
+        BooleanInput exhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Exhale");
+        BooleanInput prefireButton = ZukoAzula.controlBinding.addBoolean("Shooter Prefire");
+        BooleanInput fireButton = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
+        BooleanInput cancelShooterButton = ZukoAzula.controlBinding.addBoolean("Shooter Cancel Inhale/Exhale/Prefire");
+        
+        StateMachine shooterStates = new StateMachine(0, 
+                "passive",
+                "exhaling",
+                "inhaling",
+                "preloading",
+                "loaded",
+                "prefiring",
+                "firing");
+        
+        BooleanCell ballLoaded = new BooleanCell(false);
+        ballLoaded.setTrueWhen(shooterStates.getIsState("inhaling")
+                .and(flywheelActual.getIsState("off")).onPress());
+        ballLoaded.setFalseWhen(shooterStates.getIsState("exhaling")
+                .or(shooterStates.getIsState("firing"))
+                .or(shooterStates.getIsState("inhaling")).onPress());
+                
+        shooterStates.setStateWhen("passive", FRC.startTele);
+        shooterStates.setStateWhen("passive", 
+                cancelShooterButton.onPress());
+        shooterStates.setStateWhen("exhaling", exhaleButton.onPress());
+        shooterStates.setStateWhen("inhaling", inhaleButton.onPress());
+        shooterStates.setStateWhen("preloading", ballLoaded.onPress());
+        shooterStates.transitionStateWhen("preloading", "passive", flywheelActual.onEnterState("passive"));
+        shooterStates.setStateWhen("prefiring", prefireButton.onPress()/*.and(states.getIsState("loaded")*/);
+        shooterStates.setStateWhen("firing", fireButton.onPress().and(flywheelActual.getIsState("high")));
+        
+        flywheelTarget.setStateWhen("high", shooterStates.onEnterState("prefiring"));
+        flywheelTarget.setStateWhen("passive", shooterStates.onEnterState("passive")
+                .or(shooterStates.onEnterState("inhaling"))
+                .or(shooterStates.onEnterState("exhaling")));
+        
+        FloatOutput intake = FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD).combine(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
+        
+        shooterStates.onEnterState("exhaling", intake.eventSet(ZukoAzula.mainTuning.getFloat("Shooter Exhale Speed", 1.0f)));
+        shooterStates.onEnterState("inhaling", intake.eventSet(ZukoAzula.mainTuning.getFloat("Shooter Inhale Speed", 1.0f).negated()));
+        shooterStates.onEnterState("passive", intake.eventSet(0.0f));
+        shooterStates.onEnterState("preloading", intake.eventSet(1.0f));
+        shooterStates.onEnterState("firing", intake.eventSet(-1.0f));
+        
+        Cluck.publish("Shooter State Passive", shooterStates.getIsState("passive"));
+        Cluck.publish("Shooter State Exhaling", shooterStates.getIsState("exhaling"));
+        Cluck.publish("Shooter State Inhaling", shooterStates.getIsState("inhaling"));
+        Cluck.publish("Shooter State Preloading", shooterStates.getIsState("preloading"));
+        Cluck.publish("Shooter State Loaded", shooterStates.getIsState("loaded"));
+        Cluck.publish("Shooter State Prefiring", shooterStates.getIsState("prefiring"));
+        Cluck.publish("Shooter State Firing", shooterStates.getIsState("firing"));
+        Cluck.publish("Shooter State Ball", ballLoaded);
     }
 
     private static TalonExtendedMotor makeLinkedTalons() {
@@ -77,20 +124,5 @@ public class Shooter {
         talonLeft.modGeneralConfig().activateFollowerMode(talonRight);
 
         return talonRight;
-    }
-
-    private static BooleanInput setupRollersForSpinup(BooleanInput spinup, BooleanInput fire) throws ExtendedMotorFailureException {
-        PauseTimer rollbackInterlude = new PauseTimer(ZukoAzula.mainTuning.getFloat("Roller Rollback Duration", 0.1f));
-        spinup.onPress().send(rollbackInterlude);
-
-        // TODO: what if race condition?
-        Behavior spinupBehavior = rollerArb.addBehavior("Spin Up", spinup);
-        Behavior fireBehavior = rollerArb.addBehavior("Fire", fire);
-        Behavior rollbackBehavior = rollerArb.addBehavior("Interlude", rollbackInterlude);
-        rollerSpeed.attach(spinupBehavior, FloatInput.zero);
-        rollerSpeed.attach(fireBehavior, ZukoAzula.mainTuning.getFloat("Roller Fire Speed", 1f));
-        rollerSpeed.attach(rollbackBehavior, ZukoAzula.mainTuning.getFloat("Roller Rollback Speed", -0.1f));
-
-        return rollerArb.getIsActive(spinupBehavior);
     }
 }
