@@ -46,10 +46,10 @@ public class Portcullis {
         leftInput.send(leftGrabMotor.simpleControl(FRC.MOTOR_REVERSE));
         rightInput.send(rightGrabMotor.simpleControl(FRC.MOTOR_FORWARD));
 
-        leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)).on(FRC.startAuto);
+        leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)).on(FRC.startAuto.or(FRC.startTele));
         Cluck.publish("Portcullis Reset Encoders", leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)));
         Cluck.publish("Portcullis Left Angle", leftEncoder);
-        Cluck.publish("Portcullis Right Angle(Negated)", rightEncoder.negated());
+        Cluck.publish("Portcullis Right Angle", rightEncoder.negated());
         Cluck.publish("Portcullis PID", (FloatInput) pid);
     }
 }
