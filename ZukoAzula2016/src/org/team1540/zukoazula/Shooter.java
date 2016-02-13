@@ -37,21 +37,20 @@ public class Shooter {
         
         StateMachine flywheelTarget = new StateMachine(0, "off", "passive", "high");
         TalonExtendedMotor flywheel = makeLinkedTalons();
+        flywheel.modEncoder().configureEncoderCodesPerRev(125*15);
         FloatInput flywheelSpeed = flywheel.modEncoder().getEncoderVelocity().absolute();
         flywheelTarget.setState("passive");
         
         StateMachine flywheelActual = new StateMachine(0, "off", "passive", "high");
-        flywheelActual.setStateWhen("off", 
-                flywheelSpeed.inRange(FloatInput.zero, 
-                        ZukoAzula.mainTuning.getFloat("Shooter Max Off Speed", 100))
-                        .onPress());
+        flywheelActual.setStateWhen("off", flywheelSpeed.atMost(10.0f).onPress());
+        flywheelActual.setStateWhen("passive", flywheelSpeed.inRange(10.0f, 1000.0f).onPress());
+        flywheelActual.setStateWhen("high", flywheelSpeed.atLeast(1500.0f).onPress());
         
-        flywheelActual.setStateWhen("passive", flywheelSpeed.inRange(500.0f, 9999.0f).onPress());
-        flywheelActual.setStateWhen("high", flywheelSpeed.atLeast(10000.0f).onPress());
-                
-        flywheel.simpleControl().setWhen(0.0f, FRC.duringTele.and(flywheelTarget.getIsState("off")));
-        flywheel.simpleControl().setWhen(-0.1f, FRC.duringTele.and(flywheelTarget.getIsState("passive")));
-        flywheel.simpleControl().setWhen(1.0f, FRC.duringTele.and(flywheelTarget.getIsState("high")));
+        FloatOutput flywheelSimple = flywheel.simpleControl().addRamping(0.005f, FRC.constantPeriodic);
+        
+        flywheelSimple.setWhen(0.0f, FRC.duringTele.and(flywheelTarget.getIsState("off")));
+        flywheelSimple.setWhen(-0.068f, FRC.duringTele.and(flywheelTarget.getIsState("passive")));
+        flywheelSimple.setWhen(1.0f, FRC.duringTele.and(flywheelTarget.getIsState("high")));
         
         Cluck.publish("Flywheel State O", flywheelActual.getIsState("off"));
         Cluck.publish("Flywheel State L", flywheelActual.getIsState("passive"));
@@ -59,7 +58,7 @@ public class Shooter {
         Cluck.publish("Flywheel State Target O", flywheelTarget.getIsState("off"));
         Cluck.publish("Flywheel State Target L", flywheelTarget.getIsState("passive"));
         Cluck.publish("Flywheel State Target H", flywheelTarget.getIsState("high"));
-        Cluck.publish("Flywheel Speed", flywheel.modEncoder().getEncoderVelocity());
+        Cluck.publish("Flywheel Speed", flywheelSpeed);
         
         BooleanInput inhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Inhale");
         BooleanInput exhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Exhale");
