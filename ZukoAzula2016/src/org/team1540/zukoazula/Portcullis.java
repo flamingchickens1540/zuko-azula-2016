@@ -19,9 +19,7 @@ public class Portcullis {
     private static final TalonExtendedMotor rightGrabMotor = FRC.talonCAN(13);
 
     private static final FloatIO leftEncoder = leftGrabMotor.modEncoder().getEncoderPosition();
-    private static final FloatIO rightEncoder = rightGrabMotor.modEncoder().getEncoderPosition();
-    private static final FloatInput leftArmAngle = leftEncoder;
-    private static final FloatInput rightArmAngle = rightEncoder.negated();
+    private static final FloatIO rightEncoder = (FloatIO) rightGrabMotor.modEncoder().getEncoderPosition().negated();
 
     private static final FloatInput control = ZukoAzula.controlBinding.addFloat("Portcullis Grabber Axis").deadzone(0.3f);
 
@@ -32,25 +30,26 @@ public class Portcullis {
 
     public static void setup() throws ExtendedMotorFailureException {
 
-        PIDController pid = new PIDController(leftArmAngle, rightArmAngle, ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.001f), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0.0f));
+        PIDController pid = new PIDController(leftEncoder, rightEncoder, ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.001f), ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f), ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0.0f));
 
-        pid.updateWhen(FRC.globalPeriodic);
+        pid.updateWhen(FRC.constantPeriodic);
         pid.setOutputBounds(ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.2f));
 
-        FloatInput leftOut = control.minus(control.inRange(-0.1f, 0.1f).toFloat(0.0f, pid));
-        FloatInput rightOut = control;
+        FloatInput leftOut = control.minus(control.inRange(-0.1f, 0.1f).toFloat(0.0f, pid)).multipliedBy(maximumSpeed);
+        FloatInput rightOut = control.multipliedBy(maximumSpeed);
 
-        leftInput.attach(ZukoAzula.teleop, leftOut.inRange(maximumSpeed.negated(), maximumSpeed).toFloat(maximumSpeed.negatedIf(control.atMost(0.0f)), leftOut));
-        rightInput.attach(ZukoAzula.teleop, rightOut.inRange(maximumSpeed.negated(), maximumSpeed).toFloat(maximumSpeed.negatedIf(control.atMost(0.0f)), rightOut));
-        leftInput.attach(ZukoAzula.pit, leftOut.inRange(maximumSpeed.negated(), maximumSpeed).toFloat(maximumSpeed.negatedIf(control.atMost(0.0f)), leftOut));
-        rightInput.attach(ZukoAzula.pit, rightOut.inRange(maximumSpeed.negated(), maximumSpeed).toFloat(maximumSpeed.negatedIf(control.atMost(0.0f)), rightOut));
+        leftInput.attach(ZukoAzula.teleop, leftOut);
+        rightInput.attach(ZukoAzula.teleop, rightOut);
+        leftInput.attach(ZukoAzula.pit, leftOut);
+        rightInput.attach(ZukoAzula.pit, rightOut);
 
         leftInput.send(leftGrabMotor.simpleControl(FRC.MOTOR_REVERSE));
         rightInput.send(rightGrabMotor.simpleControl(FRC.MOTOR_FORWARD));
 
+        leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)).on(FRC.startAuto);
         Cluck.publish("Portcullis Reset Encoders", leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)));
-        Cluck.publish("Portcullis Left Angle", leftArmAngle);
-        Cluck.publish("Portcullis Right Angle", rightArmAngle);
+        Cluck.publish("Portcullis Left Angle", leftEncoder);
+        Cluck.publish("Portcullis Right Angle", rightEncoder);
         Cluck.publish("Portcullis PID", (FloatInput) pid);
     }
 }
