@@ -26,7 +26,8 @@ public class IntakeArm {
     private static final FloatIO encoder = intakeArmCAN.modEncoder().getEncoderPosition();
     private static final FloatInput outputCurrent = intakeArmCAN.modFeedback().getOutputCurrent();
 
-    private static final FloatInput targetArmVelocity = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated().multipliedBy(ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .5f));
+    private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated();
+    private static final FloatInput targetArmVelocity = intakeArmAxis.multipliedBy(ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .5f));
 
     private static final BooleanCell needsToCalibrate = new BooleanCell(true);
 
