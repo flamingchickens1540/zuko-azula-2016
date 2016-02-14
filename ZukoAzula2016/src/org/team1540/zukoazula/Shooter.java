@@ -49,8 +49,9 @@ public class Shooter {
         
         TalonExtendedMotor flywheel = makeLinkedTalons();
         flywheel.modEncoder().configureEncoderCodesPerRev(125*15);
+        flywheel.modGeneralConfig().getBrakeNotCoast().set(false);
         FloatInput flywheelSpeed = flywheel.modEncoder().getEncoderVelocity().absolute();
-        FloatOutput flywheelSimple = flywheel.simpleControl().addRamping(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Ramping", 0.005f).get(), 
+        FloatOutput flywheelSimple = flywheel.simpleControl().addRamping(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Ramping", 0.01f).get(), 
                 FRC.constantPeriodic);
         
         BooleanInput inhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Intake");
@@ -82,8 +83,10 @@ public class Shooter {
         preloadingTimer.triggerAtEnd(shooterStates.getStateSetEvent("spinup"));
         shooterStates.setStateWhen("firing", fireButton.onPress().and(flywheelActual.getIsState("high")));
         
-        flywheelTarget.setStateWhen("off", shooterStates.onExitState("intaking").or(shooterStates.onEnterState("passive")));
-        flywheelTarget.setStateWhen("passive", shooterStates.onEnterState("intaking"));
+        flywheelTarget.setStateWhen("off", shooterStates.onExitState("intaking")
+                .or(shooterStates.onEnterState("passive"))
+                .or(shooterStates.onEnterState("ejecting")));
+        flywheelTarget.setStateWhen("low", shooterStates.onEnterState("intaking"));
         flywheelTarget.setStateWhen("high", shooterStates.onEnterState("spinup"));
         
         ballLoaded.setTrueWhen(flywheelActual.onEnterState("off").and(shooterStates.getIsState("intaking")));
