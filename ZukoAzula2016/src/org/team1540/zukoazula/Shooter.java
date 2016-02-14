@@ -79,7 +79,7 @@ public class Shooter {
         shooterStates.setStateWhen("intaking", inhaleButton.onPress());
         shooterStates.setStateWhen("loaded", ballLoaded.onPress());
         shooterStates.setStateWhen("cocking", prefireButton.onPress());
-        PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.15f));
+        PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.10f));
         preloadingTimer.triggerAtEnd(shooterStates.getStateSetEvent("spinup"));
         shooterStates.setStateWhen("firing", fireButton.onPress().and(flywheelActual.getIsState("high")));
         
