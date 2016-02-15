@@ -47,12 +47,15 @@ public class Shooter {
                 "spinup",  // when the flywheel is spinning up to maximum speed
                 "firing"); // when the ball is firing
         
-        TalonExtendedMotor flywheel = makeLinkedTalons();
-        flywheel.modEncoder().configureEncoderCodesPerRev(125*15);
-        flywheel.modGeneralConfig().getBrakeNotCoast().set(false);
-        FloatInput flywheelSpeed = flywheel.modEncoder().getEncoderVelocity().absolute();
-        FloatOutput flywheelSimple = flywheel.simpleControl().addRamping(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Ramping", 0.01f).get(), 
-                FRC.constantPeriodic);
+        FloatInput selectByState = flywheelTarget.selectByState(FloatInput.zero,
+                ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target Low Speed", -80.0f),
+                ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target High Speed", 2750.0f));
+        FloatCell selectByStateCell = new FloatCell();
+        selectByStateCell.setWhen(selectByState, selectByState.onChange());
+        
+        PIDTalon flywheelControl = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", selectByStateCell.withRamping(15.0f, FRC.constantPeriodic));
+        flywheelControl.setup(BooleanInput.alwaysTrue);
+        Cluck.publish("Shooter Flywheel Target", selectByStateCell);
         
         BooleanInput inhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Intake");
         BooleanInput exhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Eject");
@@ -62,14 +65,14 @@ public class Shooter {
         
         // Behavior
         
-        flywheelSimple.setWhen(0.0f, FRC.duringTele.and(flywheelTarget.getIsState("off")));
-        flywheelSimple.setWhen(-0.068f, FRC.duringTele.and(flywheelTarget.getIsState("low")));
-        flywheelSimple.setWhen(1.0f, FRC.duringTele.and(flywheelTarget.getIsState("high")));
+//        flywheelSimple.setWhen(0.0f, FRC.duringTele.and(flywheelTarget.getIsState("off")));
+//        flywheelSimple.setWhen(-0.068f, FRC.duringTele.and(flywheelTarget.getIsState("low")));
+//        flywheelSimple.setWhen(1.0f, FRC.duringTele.and(flywheelTarget.getIsState("high")));
         
-        flywheelActual.setStateWhen("off", flywheelSpeed.atMost(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Maximum Off Speed", 10.0f)).onPress());
-        flywheelActual.setStateWhen("low", flywheelSpeed.inRange(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum Low Speed", 10.0f), 
-                ZukoAzula.mainTuning.getFloat("Shooter Flywheel Maximum Low Speed", 1000.0f)).onPress());
-        flywheelActual.setStateWhen("high", flywheelSpeed.atLeast(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed", 2000.0f)).onPress());
+        flywheelActual.setStateWhen("off", flywheelControl.speed.atMost(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Maximum Off Speed", 10.0f)).onPress());
+        flywheelActual.setStateWhen("low", flywheelControl.speed.inRange(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum Low Speed", 10.0f), 
+                ZukoAzula.mainTuning.getFloat("Shooter Flywheel Maximum Low Speed", 2300.0f)).onPress());
+        flywheelActual.setStateWhen("high", flywheelControl.speed.atLeast(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed", 2300.0f)).onPress());
         
         BooleanCell ballLoaded = new BooleanCell(false);
                 
@@ -79,7 +82,7 @@ public class Shooter {
         shooterStates.setStateWhen("intaking", inhaleButton.onPress());
         shooterStates.setStateWhen("loaded", ballLoaded.onPress());
         shooterStates.setStateWhen("cocking", prefireButton.onPress());
-        PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.10f));
+        PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.12f));
         preloadingTimer.triggerAtEnd(shooterStates.getStateSetEvent("spinup"));
         shooterStates.setStateWhen("firing", fireButton.onPress().and(flywheelActual.getIsState("high")));
         
@@ -126,7 +129,7 @@ public class Shooter {
         Cluck.publish("Shooter Flywheel State Target O", flywheelTarget.getIsState("off"));
         Cluck.publish("Shooter Flywheel State Target L", flywheelTarget.getIsState("low"));
         Cluck.publish("Shooter Flywheel State Target H", flywheelTarget.getIsState("high"));
-        Cluck.publish("Shooter Flywheel Speed", flywheelSpeed);
+        Cluck.publish("Shooter Flywheel Speed", flywheelControl.speed);
     }
 
     private static TalonExtendedMotor makeLinkedTalons() {
