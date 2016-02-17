@@ -73,20 +73,16 @@ public class Shooter {
         shooterStates.setStateWhen("firing", fireButton.onPress()
                 .and(flywheelTalon.speed.atLeast(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed", 2300.0f))));
        
-        shooterStates.setStateWhen("passive", 
-                FRC.startDisabled
-                .or(FRC.startTele)
-                .or(FRC.startAuto)
-                .or(FRC.startTest));
+        shooterStates.setStateWhen("passive", FRC.startDisabled.or(FRC.startTele).or(FRC.startAuto).or(FRC.startTest));
         
         // turn off cocking after timer expires
         PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.12f));
         preloadingTimer.triggerAtEnd(shooterStates.getStateTransitionEvent("cocking", "spinup"));   
         shooterStates.onEnterState("cocking", preloadingTimer);
         
-        
         FloatOutput intakeRollers = FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD).combine(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
-        shooterStates.selectByState(FloatInput.zero, // passive
+        shooterStates.selectByState(
+                FloatInput.zero, // passive
                 ZukoAzula.mainTuning.getFloat("Shooter Eject Speed", 1.0f), // ejecting
                 ZukoAzula.mainTuning.getFloat("Shooter Intake Speed", -1.0f), // intaking
                 FloatInput.zero, // loaded,
