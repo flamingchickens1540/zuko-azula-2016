@@ -79,7 +79,7 @@ public class Shooter {
         
         // turn off cocking after timer expires
         PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.12f));
-        preloadingTimer.triggerAtEnd(shooterStates.getStateSetEvent("spinup"));   
+        preloadingTimer.triggerAtEnd(shooterStates.getStateTransitionEvent("cocking", "spinup"));   
         shooterStates.onEnterState("cocking", preloadingTimer);
         
         shooterStates.selectByState(FloatInput.zero, // passive
