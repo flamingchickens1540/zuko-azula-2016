@@ -77,8 +77,8 @@ public class PIDTalon {
         return FRC.inTestMode().toFloat(normal, testControl);
     }
 
-    public void setup(BooleanInput activate) throws ExtendedMotorFailureException {
-        FloatInput control = activate.toFloat(0.0f, this.targetSpeed);
+    public void setup() throws ExtendedMotorFailureException {
+        FloatInput control = this.targetSpeed;
         control = wrapForTests(name + " Motor", control);
         FloatOutput speed = tem.asMode(OutputControlMode.SPEED_FIXED);
         if (speed == null) {

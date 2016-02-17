@@ -46,7 +46,8 @@ public class Shooter {
         
         FloatInput flywheelLowSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target Low Speed", -80.0f);
         FloatInput flywheelHighSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target High Speed", 2750.0f);
-        FloatInput flywheelTargetVelocity = shooterStates.selectByState(FloatInput.zero, // passive
+        FloatInput flywheelTargetVelocity = shooterStates.selectByState(
+                FloatInput.zero, // passive
                 FloatInput.zero, // ejecting
                 flywheelLowSpeed, // intaking
                 FloatInput.zero,
@@ -55,7 +56,7 @@ public class Shooter {
                 flywheelHighSpeed);
         
         PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(15.0f, FRC.constantPeriodic));
-        flywheelTalon.setup(BooleanInput.alwaysTrue);
+        flywheelTalon.setup();
         
         BooleanInput inhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Intake");
         BooleanInput exhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Eject");
@@ -72,23 +73,26 @@ public class Shooter {
         shooterStates.setStateWhen("firing", fireButton.onPress()
                 .and(flywheelTalon.speed.atLeast(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed", 2300.0f))));
        
-        shooterStates.setStateWhen("passive", FRC.startDisabled);
-        shooterStates.setStateWhen("passive", FRC.startTele);
-        shooterStates.setStateWhen("passive", FRC.startAuto);
-        shooterStates.setStateWhen("passive", FRC.startTest);
+        shooterStates.setStateWhen("passive", 
+                FRC.startDisabled
+                .or(FRC.startTele)
+                .or(FRC.startAuto)
+                .or(FRC.startTest));
         
         // turn off cocking after timer expires
         PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.12f));
         preloadingTimer.triggerAtEnd(shooterStates.getStateTransitionEvent("cocking", "spinup"));   
         shooterStates.onEnterState("cocking", preloadingTimer);
         
+        
+        FloatOutput intakeRollers = FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD).combine(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
         shooterStates.selectByState(FloatInput.zero, // passive
                 ZukoAzula.mainTuning.getFloat("Shooter Eject Speed", 1.0f), // ejecting
                 ZukoAzula.mainTuning.getFloat("Shooter Intake Speed", -1.0f), // intaking
                 FloatInput.zero, // loaded,
                 FloatInput.always(1.0f), // cocking
                 FloatInput.zero, // spinup
-                FloatInput.always(1.0f)).send(FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD).combine(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD))); // firing
+                FloatInput.always(1.0f)).send(intakeRollers); // firing
     }
 
     private static TalonExtendedMotor makeLinkedTalons() {
