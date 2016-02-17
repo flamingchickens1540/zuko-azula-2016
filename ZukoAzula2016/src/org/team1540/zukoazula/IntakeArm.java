@@ -1,24 +1,17 @@
 package org.team1540.zukoazula;
 
 import ccre.behaviors.ArbitratedFloat;
-import ccre.behaviors.Behavior;
 import ccre.behaviors.BehaviorArbitrator;
 import ccre.channel.BooleanCell;
-import ccre.channel.BooleanIO;
 import ccre.channel.BooleanInput;
-import ccre.channel.EventInput;
 import ccre.channel.EventLogger;
 import ccre.channel.EventOutput;
-import ccre.channel.FloatCell;
 import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
-import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
-import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
-import ccre.instinct.InstinctModule;
 import ccre.log.LogLevel;
 
 public class IntakeArm {
@@ -59,8 +52,7 @@ public class IntakeArm {
         EventLogger.log(calibrating.onPress(), LogLevel.INFO, "Started intake arm calibration");
         EventLogger.log(calibrating.onRelease(), LogLevel.INFO, "Finished intake arm calibration");
 
-        Cluck.publish("Intake Arm Calibrate", needsToCalibrate.eventSet(true));
-        Cluck.publish("Intake Arm Set High Point", calibrateArms);
+        Cluck.publish("Intake Arm Calibrate", needsToCalibrate);
         Cluck.publish("Intake Arm Output Current", outputCurrent);
         Cluck.publish("Intake Arm Encoder", encoder);
         Cluck.publish("Intake Arm Position", armPosition);
