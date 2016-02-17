@@ -12,28 +12,44 @@ import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 
-public class BangBangTalon {
+public class PIDTalon {
     private final TalonExtendedMotor tem;
     private final String name;
     public final FloatInput velocity, speed;
     public final BooleanInput isStopped, isUpToSpeed;
     private final FloatInput targetSpeed;
 
-    public BangBangTalon(TalonExtendedMotor tem, String name) {
+    public PIDTalon(TalonExtendedMotor tem, String name, FloatInput targetSpeed) {
         this.tem = tem;
         this.name = name;
-
+        this.targetSpeed = targetSpeed;
+        
         velocity = tem.modEncoder().getEncoderVelocity();
         Cluck.publish(name + " Velocity", velocity);
         speed = velocity.absolute();
         isStopped = this.speed.atMost(ZukoAzula.mainTuning.getFloat(name + " Maximum Stop Speed", 0.1f));
         Cluck.publish(name + " Is Stopped", isStopped);
 
-        this.targetSpeed = ZukoAzula.mainTuning.getFloat(name + " Target Speed", 150f);
         FloatInput allowedVariance = ZukoAzula.mainTuning.getFloat(name + " Allowed Variance", 0.1f);
 
         isUpToSpeed = getThreeState(velocity.atLeast(targetSpeed), velocity.atMost(targetSpeed.minus(allowedVariance.absolute())));
         Cluck.publish(name + " At Speed", isUpToSpeed);
+
+
+        Cluck.publish(name + " PID P", tem.modPID().getP());
+        Cluck.publish(name + " PID I", tem.modPID().getI());
+        Cluck.publish(name + " PID D", tem.modPID().getD());
+        Cluck.publish(name + " PID F", tem.modPID().getF());
+        Cluck.publish(name + " PID I Bounds", tem.modPID().getIntegralBounds());
+        Cluck.publish(name + " PID I Accum", tem.modPID().getIAccum());
+        
+        tem.modEncoder().configureEncoderCodesPerRev(125 * 15); // at the encoder's location. x2 for drive train, x? for arm.
+
+        tem.modGeneralConfig().configureMaximumOutputVoltage(12.0f, -12.0f);
+        Cluck.publish(name + " Closed Loop Error", tem.modFeedback().getClosedLoopError());
+        Cluck.publish(name + " Output Voltage", tem.modFeedback().getOutputVoltage());
+        Cluck.publish(name + " Output Throttle", tem.modFeedback().getThrottle());
+        Cluck.publish(name + " Position", tem.modEncoder().getEncoderPosition());
     }
 
     private static BooleanInput getThreeState(BooleanInput forceTrue, BooleanInput forceFalse) {
@@ -61,15 +77,15 @@ public class BangBangTalon {
         return FRC.inTestMode().toFloat(normal, testControl);
     }
 
-    public void setup(BooleanInput activate) throws ExtendedMotorFailureException {
-        BooleanInput isBelowVelocity = velocity.atMost(targetSpeed);
-        FloatInput control = activate.and(isBelowVelocity).toFloat(0.0f, ZukoAzula.mainTuning.getFloat(name + " Maximum Voltage", 12.0f));
+    public void setup() throws ExtendedMotorFailureException {
+        FloatInput control = this.targetSpeed;
         control = wrapForTests(name + " Motor", control);
-        FloatOutput output = tem.asMode(OutputControlMode.VOLTAGE_FIXED);
-        if (output == null) {
-            throw new ExtendedMotorFailureException("VOLTAGE_FIXED mode not supported!");
+        FloatOutput speed = tem.asMode(OutputControlMode.SPEED_FIXED);
+        if (speed == null) {
+            throw new ExtendedMotorFailureException();
         }
         tem.enable();
-        control.send(output);
+        Cluck.publish(name + " Expected Speed", control);
+        control.send(speed);
     }
 }
