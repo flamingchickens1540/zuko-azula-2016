@@ -12,15 +12,6 @@ public class ZukoAzula implements FRCApplication {
     public static final ControlBindingCreator controlBinding = FRC.controlBinding();
     public static final TuningContext mainTuning = new TuningContext("MainTuning").publishSavingEvent();
 
-<<<<<<< Upstream, based on master
-    public static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Behaviors");
-    public static final Behavior autonomous = behaviors.addBehavior("Teleop", FRC.inAutonomousMode());
-    public static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode());
-    private static final BooleanCell pitModeEnable = new BooleanCell();
-    public static final Behavior pit = behaviors.addBehavior("Pit Mode", pitModeEnable.andNot(FRC.isOnFMS()));
-
-=======
->>>>>>> 4269209 Reorgainzed portcullis code and added encoder limits
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
         Logger.info("🐣 CHEEP CHEEP 🐣");

@@ -32,23 +32,19 @@ public class Portcullis {
 
     private static final BehaviorArbitrator grabBehaviors = new BehaviorArbitrator("Portcullis Behaviors");
 
-    private static final FloatInput pidP = ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.001f);
-    private static final FloatInput pidI = ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f);
-    private static final FloatInput pidD = ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0.0f);
-
-    private static final FloatInput autolevelSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.2f);
-    private static final FloatCell maximumSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Maximum Speed", 0.4f);
-
     private static final ArbitratedFloat leftInput = grabBehaviors.addFloat();
     private static final ArbitratedFloat rightInput = grabBehaviors.addFloat();
 
     private static final BooleanCell needsToCalibrate = new BooleanCell(true);
 
+    private static final FloatInput pidP = ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.001f);
+    private static final FloatInput pidI = ZukoAzula.mainTuning.getFloat("Portcullis PID:I", 0.0f);
+    private static final FloatInput pidD = ZukoAzula.mainTuning.getFloat("Portcullis PID:D", 0.0f);
+
+    private static final FloatInput autolevelSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.2f);
+
     public static void setup() throws ExtendedMotorFailureException {
-        FloatInput position = leftEncoder.normalize(ZukoAzula.mainTuning.getFloat("Portcullis Distance to Low Position", -2370), ZukoAzula.mainTuning.getFloat("Portcullis Distance to High Position", -100));
-        BooleanInput tooHigh = position.atLeast(1).and(targetVelocity.atLeast(0));
-        BooleanInput tooLow = position.atMost(0).and(targetVelocity.atMost(0));
-        BooleanInput stop = tooHigh.or(tooLow);
+        FloatInput position = leftEncoder.normalize(ZukoAzula.mainTuning.getFloat("Portcullis Distance to Low Position", -1788), ZukoAzula.mainTuning.getFloat("Portcullis Distance to High Position", -100));
 
         PIDController levelPID = new PIDController(leftEncoder, leftEncoder.plus(rightEncoder.negated()).dividedBy(2), pidP, pidI, pidD);
         levelPID.updateWhen(FRC.constantPeriodic);
@@ -61,19 +57,20 @@ public class Portcullis {
         resetEncoders.on(bothStalling.onPress().and(calibrating));
 
         Behavior teleop = grabBehaviors.addBehavior("teleop", FRC.inTeleopMode());
-        leftInput.attach(teleop, stop.toFloat(targetVelocity, 0).plus(targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
-        rightInput.attach(teleop, stop.toFloat(targetVelocity, 0));
+        leftInput.attach(teleop, targetVelocity.minus(targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
+        rightInput.attach(teleop, targetVelocity.plus(targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
         Behavior duringCalibration = grabBehaviors.addBehavior("calibration", calibrating);
         FloatInput calibrationSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Speed During Calibration", .25f);
         leftInput.attach(duringCalibration, calibrationSpeed);
         rightInput.attach(duringCalibration, calibrationSpeed);
 
-        leftInput.send(PowerManager.managePower(1, leftGrabMotor.simpleControl(FRC.MOTOR_FORWARD)));
-        rightInput.send(PowerManager.managePower(1, rightGrabMotor.simpleControl(FRC.MOTOR_REVERSE)));
+        leftInput.send(PowerManager.managePower(1, leftGrabMotor.simpleControl(FRC.MOTOR_REVERSE)));
+        rightInput.send(PowerManager.managePower(1, rightGrabMotor.simpleControl(FRC.MOTOR_FORWARD)));
 
         EventLogger.log(calibrating.onPress(), LogLevel.INFO, "Started portcullis grabber calibration");
         EventLogger.log(calibrating.onRelease(), LogLevel.INFO, "Finished portcullis grabber calibration");
 
+        Cluck.publish("Portcullis Calibrated Position", position);
         Cluck.publish("Portcullis Calibrate", needsToCalibrate);
         Cluck.publish("Portcullis Left Output Current", leftOutputCurrent);
         Cluck.publish("Portcullis Right Output Current", rightOutputCurrent);
