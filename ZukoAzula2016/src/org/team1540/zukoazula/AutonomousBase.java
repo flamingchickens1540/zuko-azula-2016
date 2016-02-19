@@ -28,7 +28,6 @@ public abstract class AutonomousBase extends InstinctModeModule {
             Autonomous.allMotors.set(0);
             Autonomous.fire.set(false);
             Autonomous.warmup.set(false);
-            Autonomous.rollersStop.event();
             Autonomous.intakeArm.set(0);
         }
     }
@@ -81,18 +80,6 @@ public abstract class AutonomousBase extends InstinctModeModule {
         waitForTime(time);
         Autonomous.fire.set(false);
         Autonomous.warmup.set(false);
-    }
-
-    protected void rollersForward() throws AutonomousModeOverException, InterruptedException {
-        Autonomous.rollersForward.event();
-    }
-
-    protected void rollersBackward() throws AutonomousModeOverException, InterruptedException {
-        Autonomous.rollersBackward.event();
-    }
-
-    protected void rollersStop() throws AutonomousModeOverException, InterruptedException {
-        Autonomous.rollersStop.event();
     }
 
     protected void intakeArmLower(float speed) throws AutonomousModeOverException, InterruptedException {

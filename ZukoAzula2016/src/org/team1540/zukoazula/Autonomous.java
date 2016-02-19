@@ -24,10 +24,6 @@ public class Autonomous {
 
     public static final FloatCell absoluteYaw = new FloatCell(); // TODO
 
-    public static final EventCell rollersForward = new EventCell();
-    public static final EventCell rollersBackward = new EventCell();
-    public static final EventCell rollersStop = new EventCell();
-
     public static final FloatCell intakeArm = new FloatCell();
     public static final BooleanCell intakeArmStopped = new BooleanCell();
 
