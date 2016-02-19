@@ -6,6 +6,7 @@ import ccre.behaviors.Behavior;
 import ccre.behaviors.BehaviorArbitrator;
 import ccre.channel.BooleanCell;
 import ccre.channel.BooleanInput;
+import ccre.channel.CancelOutput;
 import ccre.channel.DerivedEventInput;
 import ccre.channel.DerivedFloatInput;
 import ccre.channel.DerivedUpdate;
@@ -44,18 +45,18 @@ public class Shooter {
                 "spinup",  // when the flywheel is spinning up to maximum speed
                 "firing"); // when the ball is firing
         
-        FloatInput flywheelLowSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target Low Speed", -80.0f);
+        FloatInput flywheelLowSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target Low Speed", -100.0f);
         FloatInput flywheelHighSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target High Speed", 2750.0f);
         FloatInput flywheelTargetVelocity = shooterStates.selectByState(
                 FloatInput.zero, // passive
                 FloatInput.zero, // ejecting
                 flywheelLowSpeed, // intaking
-                FloatInput.zero,
-                FloatInput.zero,
-                flywheelHighSpeed,
-                flywheelHighSpeed);
+                FloatInput.zero, // loaded
+                FloatInput.zero, // cocking
+                flywheelHighSpeed, // spinup
+                flywheelHighSpeed); // firing
         
-        PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(15.0f, FRC.constantPeriodic));
+        PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(20.0f, FRC.constantPeriodic));
         flywheelTalon.setup();
         
         BooleanInput inhaleButton = ZukoAzula.controlBinding.addBoolean("Shooter Intake");
@@ -89,6 +90,9 @@ public class Shooter {
                 FloatInput.always(1.0f), // cocking
                 FloatInput.zero, // spinup
                 FloatInput.always(1.0f)).send(intakeRollers); // firing
+        
+        Cluck.publish("Shooter Flywheel Target Vel", flywheelTargetVelocity);
+        Cluck.publish("Shooter State Intaking", shooterStates.getIsState("intaking"));
     }
 
     private static TalonExtendedMotor makeLinkedTalons() {

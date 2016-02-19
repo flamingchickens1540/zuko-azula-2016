@@ -35,7 +35,6 @@ public class PIDTalon {
         isUpToSpeed = getThreeState(velocity.atLeast(targetSpeed), velocity.atMost(targetSpeed.minus(allowedVariance.absolute())));
         Cluck.publish(name + " At Speed", isUpToSpeed);
 
-
         Cluck.publish(name + " PID P", tem.modPID().getP());
         Cluck.publish(name + " PID I", tem.modPID().getI());
         Cluck.publish(name + " PID D", tem.modPID().getD());
