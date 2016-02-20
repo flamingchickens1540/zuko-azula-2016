@@ -30,7 +30,7 @@ public class Autonomous {
     public static void setup() {
         mainModule.publishDefaultControls(true, true);
         mainModule.publishRConfControls();
-        mainModule.loadSettings(mainModule.addNullMode("Nothing", "There is nothing here."));
+        mainModule.loadSettings(mainModule.addNullMode("none", "I'm a sitting chicken!"));
         FRC.registerAutonomous(mainModule);
     }
 }
