@@ -37,7 +37,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
     protected void driveForTime(long time, float speed) throws AutonomousModeOverException, InterruptedException {
         try {
             Autonomous.allMotors.set(speed);
-            waitForTime(Math.abs(time));
+            waitForTime(time);
         } finally {
             Autonomous.allMotors.set(0);
         }
@@ -57,15 +57,10 @@ public abstract class AutonomousBase extends InstinctModeModule {
         }
     }
 
-    protected void turnAngle(int angle, int speed) throws AutonomousModeOverException, InterruptedException {
+    protected void turnForTime(long time, int speed) throws AutonomousModeOverException, InterruptedException {
         try {
-            float start = Autonomous.absoluteYaw.get();
-            Autonomous.turnMotors.set(angle > 0 ? speed : -speed);
-            if (angle > 0) {
-                waitUntilAtLeast(Autonomous.absoluteYaw, start + angle);
-            } else {
-                waitUntilAtMost(Autonomous.absoluteYaw, start + angle);
-            }
+            Autonomous.turnMotors.set(speed);
+            waitForTime(time);
         } finally {
             Autonomous.allMotors.set(0);
         }
@@ -82,11 +77,8 @@ public abstract class AutonomousBase extends InstinctModeModule {
         Autonomous.warmup.set(false);
     }
 
-    protected void intakeArmLower(float speed) throws AutonomousModeOverException, InterruptedException {
-        Autonomous.intakeArm.set(-Math.abs(speed));
-    }
-
-    protected void intakeArmRaise(float speed) throws AutonomousModeOverException, InterruptedException {
+    // speed > 0 raises arm, speed < 0 lowers arm
+    protected void setIntakeArm(float speed) throws AutonomousModeOverException, InterruptedException {
         Autonomous.intakeArm.set(Math.abs(speed));
     }
 
