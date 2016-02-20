@@ -9,6 +9,7 @@ import ccre.cluck.Cluck;
 import ccre.ctrl.Drive;
 import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
+import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 
 public class DriveCode {
@@ -18,13 +19,17 @@ public class DriveCode {
     private static final FloatInput driveRightTrigger = ZukoAzula.controlBinding.addFloat("Drive Forwards Trigger").deadzone(0.2f);
     private static final FloatInput driveLeftTrigger = ZukoAzula.controlBinding.addFloat("Drive Backwards Trigger").deadzone(0.2f);
 
-    private static final ExtendedMotor[] rightCANs = new ExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
-    private static final ExtendedMotor[] leftCANs = new ExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
+    private static final TalonExtendedMotor[] rightCANs = new TalonExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
+    private static final TalonExtendedMotor[] leftCANs = new TalonExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
 
     private static final ArbitratedFloat leftInput = ZukoAzula.behaviors.addFloat();
     private static final ArbitratedFloat rightInput = ZukoAzula.behaviors.addFloat();
 
     public static void setup() throws ExtendedMotorFailureException {
+        leftCANs[0].modEncoder().getEncoderPosition().send(Autonomous.driveEncoder);
+
+        leftInput.attach(ZukoAzula.autonomous, Autonomous.leftMotors);
+        rightInput.attach(ZukoAzula.autonomous, Autonomous.rightMotors);
         leftInput.attach(ZukoAzula.teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         rightInput.attach(ZukoAzula.teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         leftInput.attach(ZukoAzula.pit, FloatInput.zero);
