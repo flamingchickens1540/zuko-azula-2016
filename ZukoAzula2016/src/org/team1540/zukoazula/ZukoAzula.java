@@ -20,6 +20,7 @@ public class ZukoAzula implements FRCApplication {
     public static final TuningContext mainTuning = new TuningContext("MainTuning").publishSavingEvent();
 
     public static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Behaviors");
+    public static final Behavior autonomous = behaviors.addBehavior("Teleop", FRC.inAutonomousMode());
     public static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode());
     private static final BooleanCell pitModeEnable = new BooleanCell();
     public static final Behavior pit = behaviors.addBehavior("Pit Mode", pitModeEnable.andNot(FRC.isOnFMS()));
@@ -29,6 +30,7 @@ public class ZukoAzula implements FRCApplication {
         Logger.info("🐣 CHEEP CHEEP 🐣");
 
         DriveCode.setup();
+        Autonomous.setup();
         Shooter.setup();
         Portcullis.setup();
         IntakeArm.setup();

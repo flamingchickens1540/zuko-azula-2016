@@ -38,14 +38,18 @@ public class IntakeArm {
 
     public static void setup() throws ExtendedMotorFailureException {
         FloatInput armPosition = encoder.normalize(ZukoAzula.mainTuning.getFloat("Intake Distance to Low Position", -2760), ZukoAzula.mainTuning.getFloat("Intake Distance to High Position", -100));
-        BooleanInput tooHigh = armPosition.atLeast(1).and(targetArmVelocity.atLeast(0));
-        BooleanInput tooLow = armPosition.atMost(0).and(targetArmVelocity.atMost(0));
-        BooleanInput stop = tooHigh.or(tooLow);
+        BooleanInput tooHigh = armPosition.atLeast(1);
+        BooleanInput tooLow = armPosition.atMost(0);
+
+        BooleanInput stop = tooHigh.and(targetArmVelocity.atLeast(0)).or(tooLow.and(targetArmVelocity.atMost(0)));
+        BooleanInput autonomousStop = tooHigh.and(Autonomous.intakeArm.atLeast(0)).or(tooLow.and(Autonomous.intakeArm.atMost(0)));
+        autonomousStop.send(Autonomous.intakeArmStopped);
 
         BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode()));
         EventOutput calibrateArms = encoder.eventSet(0).combine(needsToCalibrate.eventSet(false));
         calibrateArms.on(outputCurrent.atLeast(ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", 4)).onPress().and(calibrating));
 
+        control.attach(armBehaviors.addBehavior("autonomous", FRC.inAutonomousMode()), autonomousStop.toFloat(Autonomous.intakeArm, 0));
         control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(targetArmVelocity, 0f));
         control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(.5f).and(targetArmVelocity.inRange(FloatInput.zero, passiveSpeed))), passiveSpeed);
         control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .3f));
