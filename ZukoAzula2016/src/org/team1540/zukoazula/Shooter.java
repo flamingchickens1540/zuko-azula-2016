@@ -33,8 +33,7 @@ public class Shooter {
 
     public static void setup() throws ExtendedMotorFailureException {
 
-        StateMachine shooterStates = new StateMachine(0, "passive", // do
-                                                                    // nothing
+        StateMachine shooterStates = new StateMachine(0, "passive", // do nothing
         "ejecting", // when the ball is being ejected from the intake mechanism
         "intaking", // when the intake mechanism is intaking a ball
         "loaded", // when a ball is loaded in the intake mechanism
@@ -44,21 +43,23 @@ public class Shooter {
 
         FloatInput flywheelLowSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target Low Speed", -100.0f);
         FloatInput flywheelHighSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target High Speed", 2750.0f);
-        FloatInput flywheelTargetVelocity = shooterStates.selectByState(FloatInput.zero, // passive
-        FloatInput.zero, // ejecting
-        flywheelLowSpeed, // intaking
-        FloatInput.zero, // loaded
-        FloatInput.zero, // cocking
-        flywheelHighSpeed, // spinup
-        flywheelHighSpeed); // firing
+        FloatInput flywheelTargetVelocity = shooterStates.selectByState(
+                FloatInput.zero, // passive
+                FloatInput.zero, // ejecting
+                flywheelLowSpeed, // intaking
+                FloatInput.zero, // loaded
+                FloatInput.zero, // cocking
+                flywheelHighSpeed, // spinup
+                flywheelHighSpeed); // firing
 
-        FloatInput flywheelRampingConstant = shooterStates.selectByState(FloatInput.always(10.0f), // passive
-        FloatInput.always(10.0f), // ejecting
-        FloatInput.always(20.0f), // intaking
-        FloatInput.always(40.0f), // loaded
-        FloatInput.always(40.0f), // cocking
-        FloatInput.always(40.0f), // spinup
-        FloatInput.always(40.0f)); // firing
+        FloatInput flywheelRampingConstant = shooterStates.selectByState(
+                FloatInput.always(10.0f), // passive
+                FloatInput.always(10.0f), // ejecting
+                FloatInput.always(20.0f), // intaking
+                FloatInput.always(40.0f), // loaded
+                FloatInput.always(40.0f), // cocking
+                FloatInput.always(40.0f), // spinup
+                FloatInput.always(40.0f)); // firing
 
         PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(flywheelRampingConstant, FRC.constantPeriodic));
         flywheelTalon.setup();
@@ -85,16 +86,14 @@ public class Shooter {
         shooterStates.onEnterState("cocking", preloadingTimer);
 
         FloatOutput intakeRollers = FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD).combine(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD));
-        shooterStates.selectByState(FloatInput.zero, // passive
-        ZukoAzula.mainTuning.getFloat("Shooter Eject Speed", 1.0f), // ejecting
-        ZukoAzula.mainTuning.getFloat("Shooter Intake Speed", -1.0f), // intaking
-        FloatInput.zero, // loaded,
-        FloatInput.always(1.0f), // cocking
-        FloatInput.zero, // spinup
-        FloatInput.always(-1.0f)).withRamping(0.1f, FRC.constantPeriodic).send(intakeRollers); // firing
-
-        Cluck.publish("Shooter Flywheel Target Vel", flywheelTargetVelocity);
-        Cluck.publish("Shooter State Intaking", shooterStates.getIsState("intaking"));
+        shooterStates.selectByState(
+                FloatInput.zero, // passive
+                ZukoAzula.mainTuning.getFloat("Shooter Eject Speed", 1.0f), // ejecting
+                ZukoAzula.mainTuning.getFloat("Shooter Intake Speed", -1.0f), // intaking
+                FloatInput.zero, // loaded,
+                FloatInput.always(1.0f), // cocking
+                FloatInput.zero, // spinup
+                FloatInput.always(-1.0f)).withRamping(0.1f, FRC.constantPeriodic).send(intakeRollers); // firing
     }
 
     private static TalonExtendedMotor makeLinkedTalons() {
