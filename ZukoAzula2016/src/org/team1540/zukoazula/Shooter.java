@@ -33,13 +33,14 @@ public class Shooter {
 
     public static void setup() throws ExtendedMotorFailureException {
 
-        StateMachine shooterStates = new StateMachine(0, "passive", // do nothing
-        "ejecting", // when the ball is being ejected from the intake mechanism
-        "intaking", // when the intake mechanism is intaking a ball
-        "loaded", // when a ball is loaded in the intake mechanism
-        "cocking", // when a ball is being cocked so that it is not in contact w/ the flywheel
-        "spinup",  // when the flywheel is spinning up to maximum speed
-        "firing"); // when the ball is firing
+        StateMachine shooterStates = new StateMachine(0, 
+                "passive", // do nothing
+                "ejecting", // when the ball is being ejected from the intake mechanism
+                "intaking", // when the intake mechanism is intaking a ball
+                "loaded", // when a ball is loaded in the intake mechanism
+                "cocking", // when a ball is being cocked so that it is not in contact w/ the flywheel
+                "spinup",  // when the flywheel is spinning up to maximum speed
+                "firing"); // when the ball is firing
 
         FloatInput flywheelLowSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target Low Speed", -100.0f);
         FloatInput flywheelHighSpeed = ZukoAzula.mainTuning.getFloat("Shooter Flywheel Target High Speed", 2750.0f);
