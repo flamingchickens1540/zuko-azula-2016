@@ -28,6 +28,7 @@ public class Autonomous {
     public static void setup() {
         mainModule.publishDefaultControls(true, true);
         mainModule.publishRConfControls();
+        mainModule.addMode(new AutonomousModeForward());
         mainModule.loadSettings(mainModule.addNullMode("none", "I'm a sitting chicken!"));
         FRC.registerAutonomous(mainModule);
     }
