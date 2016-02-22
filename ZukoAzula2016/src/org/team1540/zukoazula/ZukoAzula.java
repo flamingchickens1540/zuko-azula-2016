@@ -24,7 +24,7 @@ public class ZukoAzula implements FRCApplication {
     public static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode());
     private static final BooleanCell pitModeEnable = new BooleanCell();
     public static final Behavior pit = behaviors.addBehavior("Pit Mode", pitModeEnable.andNot(FRC.isOnFMS()));
-    
+
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
         Logger.info("🐣 CHEEP CHEEP 🐣");
