@@ -3,6 +3,7 @@ package org.team1540.zukoazula;
 import ccre.behaviors.ArbitratedFloat;
 import ccre.channel.BooleanCell;
 import ccre.channel.FloatCell;
+import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
@@ -22,14 +23,17 @@ public class DriveCode {
     private static final TalonExtendedMotor[] rightCANs = new TalonExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
     private static final TalonExtendedMotor[] leftCANs = new TalonExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
 
+    private static final FloatIO driveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
+
     private static final ArbitratedFloat leftInput = ZukoAzula.behaviors.addFloat();
     private static final ArbitratedFloat rightInput = ZukoAzula.behaviors.addFloat();
 
-    public static void setup() throws ExtendedMotorFailureException {
-        leftCANs[0].modEncoder().getEncoderPosition().send(Autonomous.driveEncoder);
+    private static final FloatCell autonomousLeft = new FloatCell();
+    private static final FloatCell autonomousRight = new FloatCell();
 
-        leftInput.attach(ZukoAzula.autonomous, Autonomous.leftMotors);
-        rightInput.attach(ZukoAzula.autonomous, Autonomous.rightMotors);
+    public static void setup() throws ExtendedMotorFailureException {
+        leftInput.attach(ZukoAzula.autonomous, autonomousLeft);
+        rightInput.attach(ZukoAzula.autonomous, autonomousRight);
         leftInput.attach(ZukoAzula.teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         rightInput.attach(ZukoAzula.teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         leftInput.attach(ZukoAzula.pit, FloatInput.zero);
@@ -55,5 +59,17 @@ public class DriveCode {
             outs[i] = cans[i].simpleControl(reverse);
         }
         return outs;
+    }
+
+    public static FloatOutput getLeftOutput() {
+        return autonomousLeft;
+    }
+
+    public static FloatOutput getRightOutput() {
+        return autonomousRight;
+    }
+
+    public static FloatInput getEncoder() {
+        return driveEncoder;
     }
 }
