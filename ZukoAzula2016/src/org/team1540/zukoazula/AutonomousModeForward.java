@@ -18,8 +18,7 @@ public class AutonomousModeForward extends AutonomousBase {
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         if (timeToDriveForward.get() > 0.0f) {
-            float speed = Math.signum(drivingSpeed.get()) * Math.min(Math.abs(drivingSpeed.get()), 1.0f);
-            driveForTime((long)(timeToDriveForward.get()*1000.0f), speed);
+            driveForTime(timeToDriveForward.get(), drivingSpeed.get());
         }
     }
 }

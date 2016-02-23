@@ -38,13 +38,13 @@ public abstract class AutonomousBase extends InstinctModeModule {
 
     protected abstract void runAutonomous() throws InterruptedException, AutonomousModeOverException;
 
-    protected void driveForTime(long milliseconds, float speed) throws AutonomousModeOverException, InterruptedException {
+    private void driveForTime(long milliseconds, float speed) throws AutonomousModeOverException, InterruptedException {
         allMotors.set(speed);
         waitForTime(milliseconds);
     }
 
-    protected void driveForTime(FloatInput seconds, float speed) throws AutonomousModeOverException, InterruptedException {
-        driveForTime((long) (seconds.get() * Time.MILLISECONDS_PER_SECOND), speed);
+    protected void driveForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
+        driveForTime((long) (seconds * Time.MILLISECONDS_PER_SECOND), speed);
     }
 
     protected void driveDistance(float dist, float speed) throws AutonomousModeOverException, InterruptedException {
@@ -57,13 +57,13 @@ public abstract class AutonomousBase extends InstinctModeModule {
         }
     }
 
-    protected void turnForTime(long time, int speed) throws AutonomousModeOverException, InterruptedException {
+    private void turnForTime(long time, int speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitForTime(time);
     }
 
-    protected void turnForTime(FloatInput seconds, int speed) throws AutonomousModeOverException, InterruptedException {
-        turnForTime((long) (seconds.get() * Time.MILLISECONDS_PER_SECOND), speed);
+    protected void turnForTime(float seconds, int speed) throws AutonomousModeOverException, InterruptedException {
+        turnForTime((long) (seconds * Time.MILLISECONDS_PER_SECOND), speed);
     }
 
     protected void startWarmup() throws AutonomousModeOverException, InterruptedException {
