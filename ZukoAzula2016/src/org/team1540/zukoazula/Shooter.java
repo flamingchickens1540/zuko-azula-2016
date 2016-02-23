@@ -77,9 +77,9 @@ public class Shooter {
         fireButton.and(upToSpeed).onPress(split(shooterStates.getIsState("firing"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("firing")));
 
         PauseTimer buzzRight = new PauseTimer(ZukoAzula.mainTuning.getFloat("Joystick Load Buzz Duration", 0.5f));
-        buzzRight.or(shooterStates.getIsState("spinup")).and(FRC.inTeleopMode()).toFloat(0, upToSpeed.toFloat(0.5f, 1.0f)).send(FRC.joystick2.rumbleRight());
+        shooterStates.getIsState("spinup").or(shooterStates.getIsState("firing")).and(FRC.inTeleopMode()).toFloat(0, upToSpeed.toFloat(0.3f, 1.0f)).send(FRC.joystick2.rumbleRight());
         shooterStates.getIsState("ejecting").or(shooterStates.getIsState("intaking")).or(buzzRight).and(FRC.inTeleopMode()).toFloat(0, 1.0f).send(FRC.joystick2.rumbleLeft());
-        buzzRight.and(FRC.inTeleopMode()).toFloat(0, 1.0f).send(FRC.joystick1.rumbleLeft());
+        buzzRight.and(FRC.inTeleopMode()).toFloat(0, 1.0f).send(FRC.joystick1.rumbleLeft().combine(FRC.joystick2.rumbleLeft()));
         shooterStates.onEnterState("loaded", buzzRight);
 
         // Behavior
