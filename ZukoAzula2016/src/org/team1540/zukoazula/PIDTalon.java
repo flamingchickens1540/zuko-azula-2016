@@ -52,7 +52,7 @@ public class PIDTalon {
         Cluck.publish(name + " Position", tem.modEncoder().getEncoderPosition());
     }
 
-    private static BooleanInput getThreeState(BooleanInput forceTrue, BooleanInput forceFalse) {
+    public static BooleanInput getThreeState(BooleanInput forceTrue, BooleanInput forceFalse) {
         return new DerivedBooleanInput(forceTrue, forceFalse) {
             private boolean state;
 
