@@ -26,15 +26,9 @@ public class IntakeArm {
     private static final FloatIO encoder = intakeArmCAN.modEncoder().getEncoderPosition();
     private static final FloatInput outputCurrent = intakeArmCAN.modFeedback().getOutputCurrent();
 
-    private static final FloatCell intakeArmTarget = new FloatCell(0.0f);
-    private static final BooleanCell gotoIntakeArmTarget = new BooleanCell(false);
-    
-    private static final FloatInput intakeArmSpeed = ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .5f);
     private static final FloatInput intakeArmAxis = ZukoAzula.controlBinding.addFloat("Intake Arm Axis").deadzone(0.2f).negated();
-    private static final FloatInput targetArmVelocity = gotoIntakeArmTarget.toFloat(
-            intakeArmAxis.multipliedBy(intakeArmSpeed),
-            intakeArmTarget.dividedBy(intakeArmTarget.absolute())).multipliedBy(intakeArmSpeed);
-    
+    private static final FloatInput targetArmVelocity = intakeArmAxis.multipliedBy(ZukoAzula.mainTuning.getFloat("Intake Arm Speed", .5f));
+
     private static final BooleanCell needsToCalibrate = new BooleanCell(true);
 
     private static final BehaviorArbitrator armBehaviors = new BehaviorArbitrator("Intake Arm Behaviors");
@@ -46,15 +40,11 @@ public class IntakeArm {
         FloatInput armPosition = encoder.normalize(ZukoAzula.mainTuning.getFloat("Intake Distance to Low Position", -2760), ZukoAzula.mainTuning.getFloat("Intake Distance to High Position", -100));
         BooleanInput tooHigh = armPosition.atLeast(1);
         BooleanInput tooLow = armPosition.atMost(0);
-        
+
         BooleanInput stop = tooHigh.and(targetArmVelocity.atLeast(0)).or(tooLow.and(targetArmVelocity.atMost(0)));
         BooleanInput autonomousStop = tooHigh.and(Autonomous.intakeArm.atLeast(0)).or(tooLow.and(Autonomous.intakeArm.atMost(0)));
         autonomousStop.send(Autonomous.intakeArmStopped);
-        
-        ZukoAzula.controlBinding.addBoolean("Intake Arm Set Up").onPress().send(intakeArmTarget.eventSet(1.0f).combine(gotoIntakeArmTarget.eventSet(true)));
-        ZukoAzula.controlBinding.addBoolean("Intake Arm Set Down").onPress().send(intakeArmTarget.eventSet(0.0f).combine(gotoIntakeArmTarget.eventSet(true)));
-        gotoIntakeArmTarget.setFalseWhen(intakeArmAxis.absolute().atLeast(0.2f).or(stop).onPress());
-        
+
         BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode()));
         EventOutput calibrateArms = encoder.eventSet(0).combine(needsToCalibrate.eventSet(false));
         calibrateArms.on(outputCurrent.atLeast(ZukoAzula.mainTuning.getFloat("Intake Arm Stalling Current Threshold", 4)).onPress().and(calibrating));

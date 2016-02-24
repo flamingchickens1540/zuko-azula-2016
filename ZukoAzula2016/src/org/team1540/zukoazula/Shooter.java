@@ -56,10 +56,10 @@ public class Shooter {
                 FloatInput.always(10.0f), // passive
                 FloatInput.always(10.0f), // ejecting
                 FloatInput.always(20.0f), // intaking
-                FloatInput.always(40.0f), // loaded
-                FloatInput.always(40.0f), // cocking
-                FloatInput.always(40.0f), // spinup
-                FloatInput.always(40.0f)); // firing
+                FloatInput.always(60.0f), // loaded
+                FloatInput.always(60.0f), // cocking
+                FloatInput.always(60.0f), // spinup
+                FloatInput.always(60.0f)); // firing
 
         PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(flywheelRampingConstant, FRC.constantPeriodic));
         flywheelTalon.setup();
@@ -89,7 +89,7 @@ public class Shooter {
         shooterStates.setStateWhen("passive", FRC.startDisabled.or(FRC.startTele).or(FRC.startAuto).or(FRC.startTest));
 
         // turn off cocking after timer expires
-        PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.10f));
+        PauseTimer preloadingTimer = new PauseTimer(ZukoAzula.mainTuning.getFloat("Shooter Cocking Timer", 0.13f));
         preloadingTimer.triggerAtEnd(shooterStates.getStateTransitionEvent("cocking", "spinup"));
         shooterStates.onEnterState("cocking", preloadingTimer);
 
