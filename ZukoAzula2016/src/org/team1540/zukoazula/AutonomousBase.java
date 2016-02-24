@@ -45,6 +45,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
     protected void driveForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
         allMotors.set(speed);
         waitSeconds(seconds);
+        allMotors.set(0);
     }
 
     protected void driveDistance(float dist, float speed) throws AutonomousModeOverException, InterruptedException {
@@ -60,6 +61,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
     protected void turnForTime(float seconds, int speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitSeconds(seconds);
+        allMotors.set(0);
     }
 
     protected void startWarmup() throws AutonomousModeOverException, InterruptedException {
