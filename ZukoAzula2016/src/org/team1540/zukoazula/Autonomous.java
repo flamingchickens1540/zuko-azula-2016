@@ -13,18 +13,6 @@ public class Autonomous {
 
     public static final InstinctMultiModule mainModule = new InstinctMultiModule(autoTuning);
 
-    public static final FloatCell rightMotors = new FloatCell();
-    public static final FloatCell leftMotors = new FloatCell();
-    public static final FloatOutput allMotors = rightMotors.combine(leftMotors);
-    public static final FloatOutput turnMotors = leftMotors.combine(rightMotors.negate());
-    public static final FloatCell driveEncoder = new FloatCell();
-
-    public static final BooleanCell warmup = new BooleanCell();
-    public static final BooleanCell fire = new BooleanCell();
-
-    public static final FloatCell intakeArm = new FloatCell();
-    public static final BooleanCell intakeArmStopped = new BooleanCell();
-
     public static void setup() {
         mainModule.publishDefaultControls(true, true);
         mainModule.publishRConfControls();
