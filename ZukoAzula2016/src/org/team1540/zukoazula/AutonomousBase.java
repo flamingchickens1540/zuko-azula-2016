@@ -58,7 +58,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
         }
     }
 
-    protected void turnForTime(float seconds, int speed) throws AutonomousModeOverException, InterruptedException {
+    protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitSeconds(seconds);
         allMotors.set(0);
