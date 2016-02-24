@@ -16,6 +16,9 @@ public class Shooter {
 
     private static final EventCell autonomousWarmup = new EventCell();
     private static final EventCell autonomousFire = new EventCell();
+    private static final EventCell autonomousIntake = new EventCell();
+    private static final EventCell autonomousEject = new EventCell();
+    private static final EventCell autonomousStop = new EventCell();
     public static BooleanInput upToSpeed;
 
     private static EventOutput split(BooleanInput cond, EventOutput t, EventOutput f) {
@@ -69,9 +72,15 @@ public class Shooter {
 
         intakeButton.onPress(split(shooterStates.getIsState("intaking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("intaking")));
         ejectButton.onPress(split(shooterStates.getIsState("ejecting"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("ejecting")));
-        cockAndSpinButton.onPress().or(autonomousFire.and(FRC.inAutonomousMode())).send(split(shooterStates.getIsState("cocking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("cocking")));
+        cockAndSpinButton.onPress(split(shooterStates.getIsState("cocking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("cocking")));
         upToSpeed = flywheelTalon.speed.atLeast(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed", 2500.0f));
-        fireButton.onPress().or(autonomousFire.and(FRC.inAutonomousMode())).and(upToSpeed).send(split(shooterStates.getIsState("firing"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("firing")));
+        fireButton.and(upToSpeed).onPress(split(shooterStates.getIsState("firing"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("firing")));
+
+        autonomousStop.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("passive"));
+        autonomousIntake.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("intaking"));
+        autonomousEject.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("ejecting"));
+        autonomousWarmup.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("cocking"));
+        autonomousFire.and(FRC.inAutonomousMode()).and(upToSpeed).send(shooterStates.getStateSetEvent("firing"));
 
         PauseTimer buzzRight = new PauseTimer(ZukoAzula.mainTuning.getFloat("Joystick Load Buzz Duration", 0.5f));
         buzzRight.or(shooterStates.getIsState("spinup")).and(FRC.inTeleopMode()).toFloat(0, upToSpeed.toFloat(0.5f, 1.0f)).send(FRC.joystick2.rumbleRight());
@@ -112,12 +121,24 @@ public class Shooter {
         return talonRight;
     }
 
-    public static EventOutput getWarmupEvent() {
-        return autonomousWarmup;
+    public static void warmupEvent() {
+        autonomousWarmup.event();
     }
 
-    public static EventOutput getFireEvent() {
-        return autonomousFire;
+    public static void fireEvent() {
+        autonomousFire.event();
+    }
+
+    public static void intakeEvent() {
+        autonomousIntake.event();
+    }
+
+    public static void ejectEvent() {
+        autonomousEject.event();
+    }
+
+    public static void stopEvent() {
+        autonomousStop.event();
     }
 
     public static BooleanInput isAbleToFire() {

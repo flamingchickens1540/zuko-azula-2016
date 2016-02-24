@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import ccre.channel.BooleanInput;
-import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
@@ -33,18 +32,19 @@ public abstract class AutonomousBase extends InstinctModeModule {
         } finally {
             allMotors.set(0);
             IntakeArm.getArmOutput().set(0);
+            Shooter.stopEvent();
         }
     }
 
     protected abstract void runAutonomous() throws InterruptedException, AutonomousModeOverException;
 
-    private void driveForTime(long milliseconds, float speed) throws AutonomousModeOverException, InterruptedException {
-        allMotors.set(speed);
-        waitForTime(milliseconds);
+    protected void waitSeconds(float seconds) throws InterruptedException, AutonomousModeOverException {
+        waitForTime((long) (seconds * Time.MILLISECONDS_PER_SECOND));
     }
 
     protected void driveForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
-        driveForTime((long) (seconds * Time.MILLISECONDS_PER_SECOND), speed);
+        allMotors.set(speed);
+        waitSeconds(seconds);
     }
 
     protected void driveDistance(float dist, float speed) throws AutonomousModeOverException, InterruptedException {
@@ -57,22 +57,33 @@ public abstract class AutonomousBase extends InstinctModeModule {
         }
     }
 
-    private void turnForTime(long time, int speed) throws AutonomousModeOverException, InterruptedException {
-        turnMotors.set(speed);
-        waitForTime(time);
-    }
-
     protected void turnForTime(float seconds, int speed) throws AutonomousModeOverException, InterruptedException {
-        turnForTime((long) (seconds * Time.MILLISECONDS_PER_SECOND), speed);
+        turnMotors.set(speed);
+        waitSeconds(seconds);
     }
 
     protected void startWarmup() throws AutonomousModeOverException, InterruptedException {
-        Shooter.getWarmupEvent().event();
+        Shooter.warmupEvent();
     }
 
-    protected boolean fire() throws AutonomousModeOverException, InterruptedException {
-        Shooter.getFireEvent().event();
-        return Shooter.isAbleToFire().get();
+    protected void fire(float time) throws AutonomousModeOverException, InterruptedException {
+        Shooter.warmupEvent();
+        waitUntil(Shooter.isAbleToFire());
+        Shooter.fireEvent();
+        waitSeconds(time);
+        Shooter.stopEvent();
+    }
+
+    protected void intake(float time) throws AutonomousModeOverException, InterruptedException {
+        Shooter.intakeEvent();
+        waitSeconds(time);
+        Shooter.stopEvent();
+    }
+
+    protected void eject(float time, float driveBackSpeed) throws AutonomousModeOverException, InterruptedException {
+        Shooter.ejectEvent();
+        driveForTime(time, -Math.abs(driveBackSpeed));
+        Shooter.stopEvent();
     }
 
     // speed > 0 raises arm, speed < 0 lowers arm
