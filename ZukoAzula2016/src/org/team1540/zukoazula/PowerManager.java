@@ -25,10 +25,10 @@ public class PowerManager {
     private static Map<Integer, List<FloatCell>> filters = new HashMap<Integer, List<FloatCell>>();
     private static StopwatchTimer timer = new StopwatchTimer();
 
-    public static FloatCell spikePeak = new FloatCell(50);
-    public static FloatCell spikeLength = new FloatCell(2);
-    public static FloatCell degree = new FloatCell((float) 1.3);
-    public static FloatCell scalingFactor = new FloatCell(8);
+    public static FloatCell spikePeak = ZukoAzula.mainTuning.getFloat("[Power] Spike Peak", 50);
+    public static FloatCell spikeLength = ZukoAzula.mainTuning.getFloat("[Power] Spike Length", 2);
+    public static FloatCell degree = ZukoAzula.mainTuning.getFloat("[Power] Degree of Reduction", (float) 1.3);
+    public static FloatCell scalingFactor = ZukoAzula.mainTuning.getFloat("[Power] Scaling Factor", 8);
 
     public static FloatOutput managePower(int priority, FloatOutput motor) {
         FloatCell filter = new FloatCell(1);
@@ -44,11 +44,6 @@ public class PowerManager {
     }
 
     public static void setup() {
-        Cluck.publish("[Power] Spike Peak", spikePeak);
-        Cluck.publish("[Power] Spike Length", spikeLength);
-        Cluck.publish("[Power] Degree of Reduction", degree);
-        Cluck.publish("[Power] Scaling Factor", scalingFactor);
-
         BooleanInput spiking = FRC.totalCurrentPDP().atLeast(spikePeak);
         BooleanInput timerFinished = timer.atLeast(spikeLength);
         spiking.onPress().send(() -> timer.reset());
