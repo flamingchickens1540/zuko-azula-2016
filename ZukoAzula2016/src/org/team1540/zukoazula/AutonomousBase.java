@@ -21,6 +21,10 @@ public abstract class AutonomousBase extends InstinctModeModule {
     private static final FloatOutput allMotors = DriveCode.getLeftOutput().combine(DriveCode.getRightOutput());
     private static final FloatOutput turnMotors = DriveCode.getLeftOutput().combine(DriveCode.getRightOutput().negate());
 
+    private static final FloatInput rotateMultiplier = Autonomous.autoTuning.getFloat("Autonomous Rotate Multiplier", 1);
+    private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 0);
+    private static final FloatInput rotateSpeed = Autonomous.autoTuning.getFloat("Autonomous Rotate Speed", .5f);
+
     public AutonomousBase(String modeName) {
         super(modeName);
     }
@@ -61,6 +65,24 @@ public abstract class AutonomousBase extends InstinctModeModule {
     protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitSeconds(seconds);
+        allMotors.set(0);
+    }
+
+    protected void turnAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
+        // float start = HeadingSensor.absoluteYaw.get();
+        if (degrees > 0) {
+            float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() + rotateOffset.get() : degrees;
+            if (actualDegrees > 0) {
+                turnMotors.set(rotateSpeed.get());
+                // waitUntilAtMost(HeadingSensor.absoluteYaw, start - actualDegrees);
+            }
+        } else {
+            float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() - rotateOffset.get() : degrees;
+            if (actualDegrees < 0) {
+                turnMotors.set(-rotateSpeed.get());
+                // waitUntilAtLeast(HeadingSensor.absoluteYaw, start - actualDegrees);
+            }
+        }
         allMotors.set(0);
     }
 
