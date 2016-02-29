@@ -35,7 +35,7 @@ public class IntakeArm {
     private static BooleanInput autonomousStop;
 
     public static void setup() throws ExtendedMotorFailureException {
-        FloatInput armPosition = encoder.normalize(ZukoAzula.mainTuning.getFloat("Intake Distance to Low Position", -2760), ZukoAzula.mainTuning.getFloat("Intake Distance to High Position", -100));
+        FloatInput armPosition = encoder.normalize(ZukoAzula.mainTuning.getFloat("Intake Distance to Low Position", -3200), ZukoAzula.mainTuning.getFloat("Intake Distance to High Position", -100));
         BooleanInput tooHigh = armPosition.atLeast(1);
         BooleanInput tooLow = armPosition.atMost(0);
         BooleanInput stop = tooHigh.and(targetArmVelocity.atLeast(0)).or(tooLow.and(targetArmVelocity.atMost(0)));

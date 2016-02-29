@@ -28,7 +28,7 @@ public class Portcullis {
     private static final FloatInput rightOutputCurrent = rightGrabMotor.modFeedback().getOutputCurrent();
 
     private static final FloatInput grabberAxis = ZukoAzula.controlBinding.addFloat("Portcullis Grabber Axis").deadzone(0.3f).negated();
-    private static final FloatInput targetVelocity = grabberAxis.multipliedBy(ZukoAzula.mainTuning.getFloat("Portcullis Speed", .3f));
+    private static final FloatInput targetVelocity = grabberAxis.multipliedBy(ZukoAzula.mainTuning.getFloat("Portcullis Speed", .5f));
 
     private static final BehaviorArbitrator grabBehaviors = new BehaviorArbitrator("Portcullis Behaviors");
 
@@ -44,7 +44,7 @@ public class Portcullis {
     private static final FloatInput autolevelSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.2f);
 
     public static void setup() throws ExtendedMotorFailureException {
-        FloatInput position = leftEncoder.normalize(ZukoAzula.mainTuning.getFloat("Portcullis Distance to Low Position", -1788), ZukoAzula.mainTuning.getFloat("Portcullis Distance to High Position", -100));
+        FloatInput position = leftEncoder.normalize(ZukoAzula.mainTuning.getFloat("Portcullis Distance to Low Position", 2470), ZukoAzula.mainTuning.getFloat("Portcullis Distance to High Position", -100));
 
         PIDController levelPID = new PIDController(leftEncoder, leftEncoder.plus(rightEncoder.negated()).dividedBy(2), pidP, pidI, pidD);
         levelPID.updateWhen(FRC.constantPeriodic);
