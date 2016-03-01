@@ -97,6 +97,17 @@ public abstract class AutonomousBase extends InstinctModeModule {
         waitUntil(IntakeArm.armIsStopped());
     }
 
+    protected void movePortcullisArmToPosition(float position, float speed) throws AutonomousModeOverException, InterruptedException {
+        if (position > Portcullis.getArmHeight().get()) {
+            Portcullis.getPortcullisOutput().set(speed);
+            waitUntilAtLeast(Portcullis.getArmHeight(), position);
+        } else {
+            Portcullis.getPortcullisOutput().set(-speed);
+            waitUntilAtMost(Portcullis.getArmHeight(), position);
+        }
+        Portcullis.getPortcullisOutput().set(0);
+    }
+
     @Override
     public void loadSettings(TuningContext ctx) {
         ArrayList<String> settings = new ArrayList<>();
