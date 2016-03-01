@@ -10,6 +10,7 @@ import ccre.channel.EventOutput;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
+import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.ctrl.PIDController;
@@ -43,8 +44,11 @@ public class Portcullis {
 
     private static final FloatInput autolevelSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Auto-level Speed", 0.2f);
 
+    private static final FloatCell autonomousVelocity = new FloatCell();
+    private static FloatInput position;
+
     public static void setup() throws ExtendedMotorFailureException {
-        FloatInput position = leftEncoder.normalize(ZukoAzula.mainTuning.getFloat("Portcullis Distance to Low Position", 2470), ZukoAzula.mainTuning.getFloat("Portcullis Distance to High Position", -100));
+        position = leftEncoder.normalize(ZukoAzula.mainTuning.getFloat("Portcullis Distance to Low Position", 2470), ZukoAzula.mainTuning.getFloat("Portcullis Distance to High Position", -100));
 
         PIDController levelPID = new PIDController(leftEncoder, leftEncoder.plus(rightEncoder.negated()).dividedBy(2), pidP, pidI, pidD);
         levelPID.updateWhen(FRC.constantPeriodic);
@@ -59,6 +63,9 @@ public class Portcullis {
         Behavior teleop = grabBehaviors.addBehavior("teleop", FRC.inTeleopMode());
         leftInput.attach(teleop, targetVelocity.minus(targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
         rightInput.attach(teleop, targetVelocity.plus(targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
+        Behavior autonomous = grabBehaviors.addBehavior("autonomous", FRC.inAutonomousMode());
+        leftInput.attach(autonomous, autonomousVelocity.minus(autonomousVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
+        rightInput.attach(autonomous, autonomousVelocity.plus(autonomousVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
         Behavior duringCalibration = grabBehaviors.addBehavior("calibration", calibrating);
         FloatInput calibrationSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Speed During Calibration", .25f);
         leftInput.attach(duringCalibration, calibrationSpeed);
@@ -77,5 +84,13 @@ public class Portcullis {
         Cluck.publish("Portcullis Left Angle", leftEncoder.asInput());
         Cluck.publish("Portcullis Right Angle", rightEncoder.negated());
         Cluck.publish("Portcullis PID", (FloatInput) levelPID);
+    }
+
+    public static FloatOutput getPortcullisOutput() {
+        return autonomousVelocity;
+    }
+
+    public static FloatInput getArmHeight() {
+        return position;
     }
 }
