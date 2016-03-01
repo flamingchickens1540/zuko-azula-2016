@@ -47,7 +47,9 @@ public class IntakeArm {
 
         control.attach(armBehaviors.addBehavior("autonomous", FRC.inAutonomousMode()), autonomousStop.toFloat(autonomousVelocity, 0));
         control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(targetArmVelocity, 0f));
-        control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(ZukoAzula.mainTuning.getFloat("Intake Arm Counter Gravity Height Threshold", .5f)).and(targetArmVelocity.inRange(FloatInput.zero, passiveSpeed).and(autonomousVelocity.inRange(FloatInput.zero, passiveSpeed)))), passiveSpeed);
+        BooleanInput teleopNotMoving = targetArmVelocity.inRange(FloatInput.zero, passiveSpeed).and(FRC.inTeleopMode());
+        BooleanInput autonomousNotMoving = autonomousVelocity.inRange(FloatInput.zero, passiveSpeed).and(FRC.inAutonomousMode());
+        control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(ZukoAzula.mainTuning.getFloat("Intake Arm Counter Gravity Height Threshold", .5f)).and(teleopNotMoving).and(autonomousNotMoving)), passiveSpeed);
         control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .3f));
         control.send(PowerManager.managePower(1, intakeArmCAN.simpleControl()));
 
