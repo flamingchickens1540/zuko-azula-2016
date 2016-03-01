@@ -39,8 +39,8 @@ public class DriveCode {
         leftInput.attach(ZukoAzula.pit, FloatInput.zero);
         rightInput.attach(ZukoAzula.pit, FloatInput.zero);
 
-        FloatOutput leftMotors = FloatOutput.combine(simpleAll(leftCANs, FRC.MOTOR_FORWARD));
-        FloatOutput rightMotors = FloatOutput.combine(simpleAll(rightCANs, FRC.MOTOR_REVERSE));
+        FloatOutput leftMotors = PowerManager.managePower(1, FloatOutput.combine(simpleAll(leftCANs, FRC.MOTOR_FORWARD)));
+        FloatOutput rightMotors = PowerManager.managePower(1, FloatOutput.combine(simpleAll(rightCANs, FRC.MOTOR_REVERSE)));
 
         leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
