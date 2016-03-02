@@ -61,7 +61,7 @@ public class Shooter {
                 FloatInput.always(60.0f), // spinup
                 FloatInput.always(60.0f)); // firing
 
-        PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(flywheelRampingConstant, FRC.constantPeriodic), 3);
+        PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(flywheelRampingConstant, FRC.constantPeriodic), 4);
         flywheelTalon.setup();
 
         BooleanInput intakeButton = ZukoAzula.controlBinding.addBoolean("Shooter Intake");
@@ -99,7 +99,7 @@ public class Shooter {
         preloadingTimer.triggerAtEnd(shooterStates.getStateTransitionEvent("cocking", "spinup"));
         shooterStates.onEnterState("cocking", preloadingTimer);
 
-        FloatOutput intakeRollers = PowerManager.managePower(2, FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD).combine(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD)));
+        FloatOutput intakeRollers = PowerManager.managePower(3, FRC.talonSimpleCAN(7, FRC.MOTOR_FORWARD).combine(FRC.talonSimpleCAN(8, FRC.MOTOR_FORWARD)));
         shooterStates.selectByState(
                 FloatInput.zero, // passive
                 ZukoAzula.mainTuning.getFloat("Shooter Eject Speed", 1.0f), // ejecting

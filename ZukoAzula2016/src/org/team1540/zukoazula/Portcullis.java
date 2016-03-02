@@ -49,8 +49,8 @@ public class Portcullis {
         leftInput.attach(ZukoAzula.pit, leftOut);
         rightInput.attach(ZukoAzula.pit, rightOut);
 
-        leftInput.send(leftGrabMotor.simpleControl(FRC.MOTOR_REVERSE));
-        rightInput.send(rightGrabMotor.simpleControl(FRC.MOTOR_FORWARD));
+        leftInput.send(PowerManager.managePower(1, leftGrabMotor.simpleControl(FRC.MOTOR_REVERSE)));
+        rightInput.send(PowerManager.managePower(1, rightGrabMotor.simpleControl(FRC.MOTOR_FORWARD)));
         
         Cluck.publish("Portcullis Zero Encoders", leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)));
         Cluck.publish("Portcullis Reset Encoders", leftEncoder.eventSet(rightEncoder));
