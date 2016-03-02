@@ -13,16 +13,18 @@ import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 
 public class PIDTalon {
+    private final int priority;
     private final TalonExtendedMotor tem;
     private final String name;
     public final FloatInput velocity, speed;
     public final BooleanInput isStopped, isUpToSpeed;
     private final FloatInput targetSpeed;
 
-    public PIDTalon(TalonExtendedMotor tem, String name, FloatInput targetSpeed) {
+    public PIDTalon(TalonExtendedMotor tem, String name, FloatInput targetSpeed, int priority) {
         this.tem = tem;
         this.name = name;
         this.targetSpeed = targetSpeed;
+        this.priority = priority;
         
         velocity = tem.modEncoder().getEncoderVelocity();
         Cluck.publish(name + " Velocity", velocity);
@@ -80,7 +82,7 @@ public class PIDTalon {
     public void setup() throws ExtendedMotorFailureException {
         FloatInput control = this.targetSpeed;
         control = wrapForTests(name + " Motor", control);
-        FloatOutput speed = tem.asMode(OutputControlMode.SPEED_FIXED);
+        FloatOutput speed = PowerManager.managePower(this.priority, tem.asMode(OutputControlMode.SPEED_FIXED));
         if (speed == null) {
             throw new ExtendedMotorFailureException();
         }

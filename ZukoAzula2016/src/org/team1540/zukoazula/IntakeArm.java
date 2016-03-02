@@ -54,7 +54,7 @@ public class IntakeArm {
         control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(targetArmVelocity, 0f));
         control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(.5f).and(targetArmVelocity.inRange(FloatInput.zero, passiveSpeed))), passiveSpeed);
         control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .3f));
-        control.send(intakeArmCAN.simpleControl());
+        control.send(PowerManager.managePower(1, intakeArmCAN.simpleControl()));
 
         EventLogger.log(calibrating.onPress(), LogLevel.INFO, "Started intake arm calibration");
         EventLogger.log(calibrating.onRelease(), LogLevel.INFO, "Finished intake arm calibration");

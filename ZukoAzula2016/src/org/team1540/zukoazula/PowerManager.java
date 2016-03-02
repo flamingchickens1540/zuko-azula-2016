@@ -29,7 +29,8 @@ public class PowerManager {
     public static FloatCell spikeLength = ZukoAzula.mainTuning.getFloat("[Power] Spike Length", 2);
     public static FloatCell degree = ZukoAzula.mainTuning.getFloat("[Power] Degree of Reduction", (float) 1.3);
     public static FloatCell scalingFactor = ZukoAzula.mainTuning.getFloat("[Power] Scaling Factor", 8);
-
+    
+    // HIGHER INT MEANS HIGHER PRIORITY
     public static FloatOutput managePower(int priority, FloatOutput motor) {
         FloatCell filter = new FloatCell(1);
 
