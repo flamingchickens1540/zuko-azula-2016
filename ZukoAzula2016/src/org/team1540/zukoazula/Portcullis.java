@@ -61,11 +61,13 @@ public class Portcullis {
         resetEncoders.on(bothStalling.onPress().and(calibrating));
 
         Behavior teleop = grabBehaviors.addBehavior("teleop", FRC.inTeleopMode());
-        leftInput.attach(teleop, targetVelocity.minus(targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
-        rightInput.attach(teleop, targetVelocity.plus(targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
+        FloatInput teleopPID = targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID);
+        leftInput.attach(teleop, targetVelocity.minus(teleopPID));
+        rightInput.attach(teleop, targetVelocity.plus(teleopPID));
         Behavior autonomous = grabBehaviors.addBehavior("autonomous", FRC.inAutonomousMode());
-        leftInput.attach(autonomous, autonomousVelocity.minus(autonomousVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
-        rightInput.attach(autonomous, autonomousVelocity.plus(autonomousVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID)));
+        FloatInput autonomousPID = autonomousVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID);
+        leftInput.attach(autonomous, autonomousVelocity.minus(autonomousPID));
+        rightInput.attach(autonomous, autonomousVelocity.plus(autonomousPID));
         Behavior duringCalibration = grabBehaviors.addBehavior("calibration", calibrating);
         FloatInput calibrationSpeed = ZukoAzula.mainTuning.getFloat("Portcullis Speed During Calibration", .25f);
         leftInput.attach(duringCalibration, calibrationSpeed);
