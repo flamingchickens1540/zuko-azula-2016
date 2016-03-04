@@ -58,9 +58,9 @@ public class DriveCode {
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
 
         FloatCell fastestDriveSpeed = new FloatCell();
-        ticksPerSecond.onChange().send(() -> {
-            if (Math.abs(feetPerSecond.get()) > fastestDriveSpeed.get()) {
-                fastestDriveSpeed.set(Math.abs(ticksPerSecond.get()));
+        feetPerSecond.send((newValue) -> {
+            if (Math.abs(newValue) > fastestDriveSpeed.get()) {
+                fastestDriveSpeed.set(Math.abs(newValue));
             }
         });
         fastestDriveSpeed.setWhen(0, FRC.startTele);
@@ -73,7 +73,8 @@ public class DriveCode {
         Cluck.publish("Drive Right Motors", rightInput);
         Cluck.publish("Pit Mode Enable", pitModeEnable);
         Cluck.publish("Drive Feet Per Second", feetPerSecond);
-        Cluck.publish("Drive Fastest Speed", fastestDriveSpeed);
+        Cluck.publish("Drive Fastest Speed", fastestDriveSpeed.asInput());
+        Cluck.publish("Drive Reset Fastest Speed", fastestDriveSpeed.eventSet(0));
     }
 
     private static FloatOutput[] simpleAll(ExtendedMotor[] cans, boolean reverse) throws ExtendedMotorFailureException {
