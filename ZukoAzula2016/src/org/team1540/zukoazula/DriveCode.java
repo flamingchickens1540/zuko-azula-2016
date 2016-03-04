@@ -8,11 +8,13 @@ import ccre.channel.FloatCell;
 import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
+import ccre.channel.DerivedFloatInput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
+import ccre.time.Time;
 
 public class DriveCode {
 
@@ -24,7 +26,10 @@ public class DriveCode {
     private static final TalonExtendedMotor[] rightCANs = new TalonExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
     private static final TalonExtendedMotor[] leftCANs = new TalonExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
 
-    private static final FloatIO driveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
+    private static final FloatIO leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
+    private static final FloatIO rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition();
+    private static final FloatInput ticksPerSecond = velocityOf(leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2), ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
+    private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ZukoAzula.mainTuning.getFloat("Ticks Per Feet", 1));
 
     private static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Behaviors");
     private static final Behavior autonomous = behaviors.addBehavior("Autonomous", FRC.inAutonomousMode());
@@ -59,6 +64,17 @@ public class DriveCode {
         Cluck.publish("Drive Left Motors", leftInput);
         Cluck.publish("Drive Right Motors", rightInput);
         Cluck.publish("Pit Mode Enable", pitModeEnable);
+        Cluck.publish("Drive Feet Per Second", feetPerSecond);
+        Cluck.publish("Drive Fastest Speed", new DerivedFloatInput(ticksPerSecond) {
+            @Override
+            protected float apply() {
+                if (feetPerSecond.get() > this.get()) {
+                    return feetPerSecond.get();
+                } else {
+                    return this.get();
+                }
+            }
+        });
     }
 
     private static FloatOutput[] simpleAll(ExtendedMotor[] cans, boolean reverse) throws ExtendedMotorFailureException {
@@ -78,6 +94,29 @@ public class DriveCode {
     }
 
     public static FloatInput getEncoder() {
-        return driveEncoder;
+        return leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
+    }
+
+    // Better accuracy than getEncoderVelocity()
+    private static FloatInput velocityOf(FloatInput input, FloatInput updateThreshold) {
+        return new DerivedFloatInput(input) {
+            long oldtime = Time.currentTimeNanos();
+            float oldvalue = input.get();
+
+            @Override
+            protected float apply() {
+                long newtime = Time.currentTimeNanos();
+                float newvalue = input.get();
+                // To improve accuracy, if too little time has passed before the
+                // most recent update, it will not update again.
+                if (newtime - oldtime < updateThreshold.get() * Time.NANOSECONDS_PER_SECOND) {
+                    return this.get();
+                }
+                float result = (newvalue - oldvalue) / (newtime - oldtime) * Time.NANOSECONDS_PER_SECOND;
+                oldtime = newtime;
+                oldvalue = newvalue;
+                return result;
+            }
+        };
     }
 }
