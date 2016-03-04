@@ -28,7 +28,8 @@ public class DriveCode {
 
     private static final FloatIO leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
     private static final FloatIO rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition();
-    private static final FloatInput ticksPerSecond = velocityOf(leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2), ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
+    private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
+    private static final FloatInput ticksPerSecond = velocityOf(driveEncodersAverage, ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
     private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ZukoAzula.mainTuning.getFloat("Ticks Per Feet", 1));
 
     private static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Behaviors");
@@ -73,6 +74,7 @@ public class DriveCode {
         Cluck.publish("Drive Right Motors", rightInput);
         Cluck.publish("Pit Mode Enable", pitModeEnable);
         Cluck.publish("Drive Feet Per Second", feetPerSecond);
+        Cluck.publish("Drive Encoders Average", driveEncodersAverage);
         Cluck.publish("Drive Fastest Speed", fastestDriveSpeed.asInput());
         Cluck.publish("Drive Reset Fastest Speed", fastestDriveSpeed.eventSet(0));
     }
@@ -94,7 +96,7 @@ public class DriveCode {
     }
 
     public static FloatInput getEncoder() {
-        return leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
+        return driveEncodersAverage;
     }
 
     // Better accuracy than getEncoderVelocity()
