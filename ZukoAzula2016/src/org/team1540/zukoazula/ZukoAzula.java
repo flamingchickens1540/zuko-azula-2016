@@ -21,6 +21,6 @@ public class ZukoAzula implements FRCApplication {
         Shooter.setup();
         Portcullis.setup();
         IntakeArm.setup();
-        EmergencyBrake.setup();
+        ChallengeBrake.setup();
     }
 }
