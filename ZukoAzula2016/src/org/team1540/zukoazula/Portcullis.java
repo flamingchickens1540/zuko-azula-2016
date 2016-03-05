@@ -36,6 +36,7 @@ public class Portcullis {
     private static final ArbitratedFloat leftInput = grabBehaviors.addFloat();
     private static final ArbitratedFloat rightInput = grabBehaviors.addFloat();
 
+    private static final BooleanCell calibrationEnabled = ZukoAzula.mainTuning.getBoolean("Portcullis Enable Calibration", false);
     private static final BooleanCell needsToCalibrate = new BooleanCell(true);
 
     private static final FloatInput pidP = ZukoAzula.mainTuning.getFloat("Portcullis PID:P", 0.001f);
@@ -54,11 +55,12 @@ public class Portcullis {
         levelPID.updateWhen(FRC.constantPeriodic);
         levelPID.setOutputBounds(autolevelSpeed);
 
-        BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode()));
+        BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode())).and(calibrationEnabled);
         EventOutput resetEncoders = leftEncoder.eventSet(0).combine(rightEncoder.eventSet(0)).combine(needsToCalibrate.eventSet(false));
         FloatInput stalling = ZukoAzula.mainTuning.getFloat("Portcullis Stalling Current Threshold", 1.75f);
         BooleanInput bothStalling = leftOutputCurrent.atLeast(stalling).and(rightOutputCurrent.atLeast(stalling));
         resetEncoders.on(bothStalling.onPress().and(calibrating));
+        resetEncoders.on(FRC.startAuto.or(FRC.startTele).and(needsToCalibrate).andNot(calibrationEnabled));
 
         Behavior teleop = grabBehaviors.addBehavior("teleop", FRC.inTeleopMode());
         FloatInput teleopPID = targetVelocity.inRange(-0.1f, 0.1f).toFloat(0.0f, levelPID);
