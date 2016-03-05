@@ -12,9 +12,9 @@ public class HeadingSensor {
     public static final FloatInput yawRate = sensor.getYawRate();
 
     public static void setup() {
-        Cluck.publish("Yaw Angle", yawAngle);
-        Cluck.publish("Yaw Rate", yawRate);
-        Cluck.publish("Yaw Reset", sensor.eventZeroYaw());
+        Cluck.publish("Heading Yaw Angle", yawAngle);
+        Cluck.publish("Heading Yaw Rate", yawRate);
+        Cluck.publish("Heading Yaw Reset", sensor.eventZeroYaw());
         Cluck.publish("Heading Connected", sensor.getConnected());
     }
 }

@@ -10,7 +10,7 @@ import ccre.channel.FloatCell;
 import ccre.channel.FloatInput;
 
 class OffsetTracker {
-    private final float[] history = new float[10];;
+    private final float[] history = new float[10];
     private int next_index = 0;
     private final FloatCell offset = new FloatCell();
 
