@@ -32,6 +32,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
         } finally {
             allMotors.set(0);
             IntakeArm.getArmOutput().set(0);
+            Portcullis.getPortcullisOutput().set(0);
             Shooter.stopEvent();
         }
     }
@@ -95,6 +96,19 @@ public abstract class AutonomousBase extends InstinctModeModule {
 
     protected void waitUntilArmStopped() throws AutonomousModeOverException, InterruptedException {
         waitUntil(IntakeArm.armIsStopped());
+    }
+
+    FloatInput portcullisWiggleRoom = Autonomous.autoTuning.getFloat("Autonomous Portcullis Wiggle Room", .05f);
+
+    protected void movePortcullisArmToPosition(float position, float speed) throws AutonomousModeOverException, InterruptedException {
+        if (position > Portcullis.getArmHeight().get()) {
+            Portcullis.getPortcullisOutput().set(Math.abs(speed));
+            waitUntilAtLeast(Portcullis.getArmHeight(), position - portcullisWiggleRoom.get());
+        } else {
+            Portcullis.getPortcullisOutput().set(-Math.abs(speed));
+            waitUntilAtMost(Portcullis.getArmHeight(), position + portcullisWiggleRoom.get());
+        }
+        Portcullis.getPortcullisOutput().set(0);
     }
 
     @Override

@@ -1,12 +1,9 @@
 package org.team1540.zukoazula;
 
 import ccre.behaviors.ArbitratedFloat;
-import ccre.behaviors.Behavior;
 import ccre.behaviors.BehaviorArbitrator;
 import ccre.channel.BooleanCell;
-import ccre.channel.BooleanIO;
 import ccre.channel.BooleanInput;
-import ccre.channel.EventInput;
 import ccre.channel.EventLogger;
 import ccre.channel.EventOutput;
 import ccre.channel.FloatCell;
@@ -14,11 +11,9 @@ import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
-import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
-import ccre.instinct.InstinctModule;
 import ccre.log.LogLevel;
 
 public class IntakeArm {
@@ -40,7 +35,7 @@ public class IntakeArm {
     private static BooleanInput autonomousStop;
 
     public static void setup() throws ExtendedMotorFailureException {
-        FloatInput armPosition = encoder.normalize(ZukoAzula.mainTuning.getFloat("Intake Distance to Low Position", -2760), ZukoAzula.mainTuning.getFloat("Intake Distance to High Position", -100));
+        FloatInput armPosition = encoder.normalize(ZukoAzula.mainTuning.getFloat("Intake Distance to Low Position", -3200), ZukoAzula.mainTuning.getFloat("Intake Distance to High Position", -100));
         BooleanInput tooHigh = armPosition.atLeast(1);
         BooleanInput tooLow = armPosition.atMost(0);
         BooleanInput stop = tooHigh.and(targetArmVelocity.atLeast(0)).or(tooLow.and(targetArmVelocity.atMost(0)));
@@ -52,15 +47,16 @@ public class IntakeArm {
 
         control.attach(armBehaviors.addBehavior("autonomous", FRC.inAutonomousMode()), autonomousStop.toFloat(autonomousVelocity, 0));
         control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(targetArmVelocity, 0f));
-        control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(.5f).and(targetArmVelocity.inRange(FloatInput.zero, passiveSpeed))), passiveSpeed);
+        BooleanInput teleopNotMoving = targetArmVelocity.inRange(FloatInput.zero, passiveSpeed).and(FRC.inTeleopMode());
+        BooleanInput autonomousNotMoving = autonomousVelocity.inRange(FloatInput.zero, passiveSpeed).and(FRC.inAutonomousMode());
+        control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(ZukoAzula.mainTuning.getFloat("Intake Arm Counter Gravity Height Threshold", .5f)).and(teleopNotMoving).and(autonomousNotMoving)), passiveSpeed);
         control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .3f));
         control.send(PowerManager.managePower(1, intakeArmCAN.simpleControl()));
 
         EventLogger.log(calibrating.onPress(), LogLevel.INFO, "Started intake arm calibration");
         EventLogger.log(calibrating.onRelease(), LogLevel.INFO, "Finished intake arm calibration");
 
-        Cluck.publish("Intake Arm Calibrate", needsToCalibrate.eventSet(true));
-        Cluck.publish("Intake Arm Set High Point", calibrateArms);
+        Cluck.publish("Intake Arm Calibrate", needsToCalibrate);
         Cluck.publish("Intake Arm Output Current", outputCurrent);
         Cluck.publish("Intake Arm Encoder", encoder);
         Cluck.publish("Intake Arm Position", armPosition);
