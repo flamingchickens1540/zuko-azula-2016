@@ -180,14 +180,14 @@ public enum AHRSRegister {
         }
     }
 
-    public int decodeAnyUint(RegisterIO io) {
+    public long decodeAnyUint(RegisterIO io) {
         switch (type) {
         case U8:
             return decodeByte(io) & 0xFF;
         case U16:
             return decodeShort(io) & 0xFFFF;
         case U32:
-            return decodeInt(io);
+            return decodeInt(io) & 0xFFFFFFFFL;
         case FLAG16:
             return decodeFlag(io) ? 1 : 0;
         default:
@@ -198,11 +198,11 @@ public enum AHRSRegister {
     public float decodeAnyFloat(RegisterIO io) {
         switch (type) {
         case U8:
-            return decodeByte(io);
+            return decodeByte(io) & 0xFF;
         case U16:
-            return decodeShort(io);
+            return decodeShort(io) & 0xFFFF;
         case U32:
-            return decodeInt(io);
+            return decodeInt(io) & 0xFFFFFFFFL;
         case FLAG16:
             return decodeFlag(io) ? 1f : 0f;
         case SF16_100:
