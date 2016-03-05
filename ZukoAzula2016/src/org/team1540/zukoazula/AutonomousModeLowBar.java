@@ -5,7 +5,7 @@ import ccre.instinct.AutonomousModeOverException;
 
 public class AutonomousModeLowBar extends AutonomousBase {
 
-    @Tunable(5.0f)
+    @Tunable(18.0f)
     private FloatInput distance;
 
     @Tunable(0.5f)

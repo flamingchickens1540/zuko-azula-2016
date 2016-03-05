@@ -15,6 +15,7 @@ public class ZukoAzula implements FRCApplication {
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
         Logger.info("🐣 CHEEP CHEEP 🐣");
+        //Instrumentation.setup();
 
         DriveCode.setup();
         Autonomous.setup();

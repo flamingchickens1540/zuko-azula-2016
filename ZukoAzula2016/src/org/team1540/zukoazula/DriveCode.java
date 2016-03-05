@@ -26,7 +26,7 @@ public class DriveCode {
     private static final TalonExtendedMotor[] rightCANs = new TalonExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
     private static final TalonExtendedMotor[] leftCANs = new TalonExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
 
-    public static final FloatInput ticksPerFoot = ZukoAzula.mainTuning.getFloat("Ticks Per Foot", 250);
+    public static final FloatInput ticksPerFoot = ZukoAzula.mainTuning.getFloat("Ticks Per Foot", 100);
 
     private static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
     private static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
@@ -39,6 +39,7 @@ public class DriveCode {
     private static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode());
     private static final BooleanCell pitModeEnable = new BooleanCell();
     private static final Behavior pit = behaviors.addBehavior("Pit Mode", pitModeEnable.andNot(FRC.isOnFMS()));
+    private static final Behavior challenge = behaviors.addBehavior("Challenge Brake", ChallengeBrake.driveBrake);
 
     private static final ArbitratedFloat leftInput = behaviors.addFloat();
     private static final ArbitratedFloat rightInput = behaviors.addFloat();
@@ -53,12 +54,16 @@ public class DriveCode {
         rightInput.attach(teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
         leftInput.attach(pit, FloatInput.zero);
         rightInput.attach(pit, FloatInput.zero);
+        leftInput.attach(challenge, FloatInput.zero);
+        rightInput.attach(challenge, FloatInput.zero);
 
         FloatOutput leftMotors = PowerManager.managePower(2, FloatOutput.combine(simpleAll(leftCANs, FRC.MOTOR_FORWARD)));
         FloatOutput rightMotors = PowerManager.managePower(2, FloatOutput.combine(simpleAll(rightCANs, FRC.MOTOR_REVERSE)));
 
         leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
+
+        Instrumentation.recordDrive(leftInput, rightInput, leftDriveEncoder, rightDriveEncoder);
 
         FloatCell fastestDriveSpeed = new FloatCell();
         feetPerSecond.send((newValue) -> {
