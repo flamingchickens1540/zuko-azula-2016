@@ -26,11 +26,13 @@ public class DriveCode {
     private static final TalonExtendedMotor[] rightCANs = new TalonExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
     private static final TalonExtendedMotor[] leftCANs = new TalonExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
 
+    public static final FloatInput ticksPerFoot = ZukoAzula.mainTuning.getFloat("Ticks Per Foot", 250);
+
     private static final FloatIO leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
     private static final FloatIO rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition();
     private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
     private static final FloatInput ticksPerSecond = velocityOf(driveEncodersAverage, ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
-    private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ZukoAzula.mainTuning.getFloat("Ticks Per Feet", 1));
+    private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ticksPerFoot);
 
     private static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Behaviors");
     private static final Behavior autonomous = behaviors.addBehavior("Autonomous", FRC.inAutonomousMode());

@@ -53,13 +53,13 @@ public abstract class AutonomousBase extends InstinctModeModule {
         allMotors.set(0);
     }
 
-    protected void driveDistance(float dist, float speed) throws AutonomousModeOverException, InterruptedException {
+    protected void driveDistance(float feet, float speed) throws AutonomousModeOverException, InterruptedException {
         float start = DriveCode.getEncoder().get();
-        allMotors.set(dist > 0 ? speed : -speed);
-        if (dist > 0) {
-            waitUntilAtLeast(DriveCode.getEncoder(), start + dist);
+        allMotors.set(feet > 0 ? speed : -speed);
+        if (feet > 0) {
+            waitUntilAtLeast(DriveCode.getEncoder(), start + feet * DriveCode.ticksPerFoot.get());
         } else {
-            waitUntilAtMost(DriveCode.getEncoder(), start + dist);
+            waitUntilAtMost(DriveCode.getEncoder(), start + feet * DriveCode.ticksPerFoot.get());
         }
     }
 
