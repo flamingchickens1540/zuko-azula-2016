@@ -33,6 +33,14 @@ public class FRCAHRS {
         return ahrs.getYawRate();
     }
 
+    public FloatInput getPitchAngle() {
+        return ahrs.getFloat(AHRSRegister.PITCH);
+    }
+
+    public FloatInput getRollAngle() {
+        return ahrs.getFloat(AHRSRegister.ROLL);
+    }
+
     public BooleanInput getConnected() {
         return ahrs.getConnected();
     }

@@ -24,6 +24,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
     private static final FloatInput rotateMultiplier = Autonomous.autoTuning.getFloat("Autonomous Rotate Multiplier", 1);
     private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 0);
     private static final FloatInput rotateSpeed = Autonomous.autoTuning.getFloat("Autonomous Rotate Speed", .5f);
+    private static final FloatInput portcullisWiggleRoom = Autonomous.autoTuning.getFloat("Autonomous Portcullis Wiggle Room", .05f);
 
     public AutonomousBase(String modeName) {
         super(modeName);
@@ -70,18 +71,18 @@ public abstract class AutonomousBase extends InstinctModeModule {
     }
 
     protected void turnAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
-        // float start = HeadingSensor.absoluteYaw.get();
+        float start = HeadingSensor.yawAngle.get();
         if (degrees > 0) {
             float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() + rotateOffset.get() : degrees;
             if (actualDegrees > 0) {
                 turnMotors.set(rotateSpeed.get());
-                // waitUntilAtMost(HeadingSensor.absoluteYaw, start - actualDegrees);
+                waitUntilAtMost(HeadingSensor.yawAngle, start - actualDegrees);
             }
         } else {
             float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() - rotateOffset.get() : degrees;
             if (actualDegrees < 0) {
                 turnMotors.set(-rotateSpeed.get());
-                // waitUntilAtLeast(HeadingSensor.absoluteYaw, start - actualDegrees);
+                waitUntilAtLeast(HeadingSensor.yawAngle, start - actualDegrees);
             }
         }
         allMotors.set(0);
@@ -119,8 +120,6 @@ public abstract class AutonomousBase extends InstinctModeModule {
     protected void waitUntilArmStopped() throws AutonomousModeOverException, InterruptedException {
         waitUntil(IntakeArm.armIsStopped());
     }
-
-    FloatInput portcullisWiggleRoom = Autonomous.autoTuning.getFloat("Autonomous Portcullis Wiggle Room", .05f);
 
     protected void movePortcullisArmToPosition(float position, float speed) throws AutonomousModeOverException, InterruptedException {
         if (position > Portcullis.getArmHeight().get()) {
