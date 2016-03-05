@@ -8,11 +8,13 @@ import ccre.channel.FloatCell;
 import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
+import ccre.channel.DerivedFloatInput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotor;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
+import ccre.time.Time;
 
 public class DriveCode {
 
@@ -24,7 +26,11 @@ public class DriveCode {
     private static final TalonExtendedMotor[] rightCANs = new TalonExtendedMotor[] { FRC.talonCAN(4), FRC.talonCAN(5), FRC.talonCAN(6) };
     private static final TalonExtendedMotor[] leftCANs = new TalonExtendedMotor[] { FRC.talonCAN(1), FRC.talonCAN(2), FRC.talonCAN(3) };
 
-    private static final FloatIO driveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
+    private static final FloatIO leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
+    private static final FloatIO rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition();
+    private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
+    private static final FloatInput ticksPerSecond = velocityOf(driveEncodersAverage, ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
+    private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ZukoAzula.mainTuning.getFloat("Ticks Per Feet", 1));
 
     private static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Behaviors");
     private static final Behavior autonomous = behaviors.addBehavior("Autonomous", FRC.inAutonomousMode());
@@ -52,6 +58,14 @@ public class DriveCode {
         leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
 
+        FloatCell fastestDriveSpeed = new FloatCell();
+        feetPerSecond.send((newValue) -> {
+            if (Math.abs(newValue) > fastestDriveSpeed.get()) {
+                fastestDriveSpeed.set(Math.abs(newValue));
+            }
+        });
+        fastestDriveSpeed.setWhen(0, FRC.startTele);
+
         Cluck.publish("Drive Left Raw", driveLeftAxis);
         Cluck.publish("Drive Right Raw", driveRightAxis);
         Cluck.publish("Drive Forwards Raw", driveRightTrigger);
@@ -59,6 +73,10 @@ public class DriveCode {
         Cluck.publish("Drive Left Motors", leftInput);
         Cluck.publish("Drive Right Motors", rightInput);
         Cluck.publish("Pit Mode Enable", pitModeEnable);
+        Cluck.publish("Drive Feet Per Second", feetPerSecond);
+        Cluck.publish("Drive Encoders Average", driveEncodersAverage);
+        Cluck.publish("Drive Fastest Speed", fastestDriveSpeed.asInput());
+        Cluck.publish("Drive Reset Fastest Speed", fastestDriveSpeed.eventSet(0));
     }
 
     private static FloatOutput[] simpleAll(ExtendedMotor[] cans, boolean reverse) throws ExtendedMotorFailureException {
@@ -78,6 +96,29 @@ public class DriveCode {
     }
 
     public static FloatInput getEncoder() {
-        return driveEncoder;
+        return driveEncodersAverage;
+    }
+
+    // Better accuracy than getEncoderVelocity()
+    private static FloatInput velocityOf(FloatInput input, FloatInput updateThreshold) {
+        return new DerivedFloatInput(input) {
+            long oldtime = Time.currentTimeNanos();
+            float oldvalue = input.get();
+
+            @Override
+            protected float apply() {
+                long newtime = Time.currentTimeNanos();
+                float newvalue = input.get();
+                // To improve accuracy, if too little time has passed before the
+                // most recent update, it will not update again.
+                if (newtime - oldtime < updateThreshold.get() * Time.NANOSECONDS_PER_SECOND) {
+                    return this.get();
+                }
+                float result = (newvalue - oldvalue) / (newtime - oldtime) * Time.NANOSECONDS_PER_SECOND;
+                oldtime = newtime;
+                oldvalue = newvalue;
+                return result;
+            }
+        };
     }
 }
