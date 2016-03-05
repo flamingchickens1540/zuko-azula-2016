@@ -28,8 +28,8 @@ public class DriveCode {
 
     public static final FloatInput ticksPerFoot = ZukoAzula.mainTuning.getFloat("Ticks Per Foot", 250);
 
-    private static final FloatIO leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition();
-    private static final FloatIO rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition();
+    private static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
+    private static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
     private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
     private static final FloatInput ticksPerSecond = velocityOf(driveEncodersAverage, ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
     private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ticksPerFoot);
