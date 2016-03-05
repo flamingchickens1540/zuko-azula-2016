@@ -21,16 +21,16 @@ public enum AHRSRegister {
     IMU_CAL_COMPLETE(0x09, AHRSProtocol.NAVX_CAL_STATUS_IMU_CAL_COMPLETE, RegisterType.FLAG16, WriteMode.READ_ONLY),
 
     SENSOR_STATUS(0x10, RegisterType.U16), TIMESTAMP(0x12, RegisterType.U32), YAW(0x16, RegisterType.SF16_100),
-    
+
     SENSOR_STATUS_MOVING(0x10, AHRSProtocol.NAVX_SENSOR_STATUS_MOVING, RegisterType.FLAG16, WriteMode.READ_ONLY),
-    
+
     // apparently rotating!
     SENSOR_STATUS_YAW_STABLE(0x10, AHRSProtocol.NAVX_SENSOR_STATUS_YAW_STABLE, RegisterType.FLAG16, WriteMode.READ_ONLY),
-    
+
     SENSOR_STATUS_ALTITUDE_VALID(0x10, AHRSProtocol.NAVX_SENSOR_STATUS_ALTITUDE_VALID, RegisterType.FLAG16, WriteMode.READ_ONLY),
-    
+
     SENSOR_STATUS_MAGNETOMETER_CALIBRATED(0x10, AHRSProtocol.NAVX_CAL_STATUS_MAG_CAL_COMPLETE, RegisterType.FLAG16, WriteMode.READ_ONLY),
-    
+
     SENSOR_STATUS_MAGNETOMETER_DISTURBANCE(0x10, AHRSProtocol.NAVX_SENSOR_STATUS_MAG_DISTURBANCE, RegisterType.FLAG16, WriteMode.READ_ONLY),
 
     ROLL(0x18, RegisterType.SF16_100), PITCH(0x1A, RegisterType.SF16_100), HEADING(0x1C, RegisterType.UF16_100), FUSED_HEADING(0x1E, RegisterType.UF16_100),
@@ -55,7 +55,7 @@ public enum AHRSRegister {
     VEL_Z_I(0x60, RegisterType.U16), VEL_Z_D(0x62, RegisterType.U16), DISP_X_I(0x64, RegisterType.U16), DISP_X_D(0x66, RegisterType.U16),
 
     DISP_Y_I(0x68, RegisterType.U16), DISP_Y_D(0x6A, RegisterType.U16), DISP_Z_I(0x6C, RegisterType.U16), DISP_Z_D(0x6E, RegisterType.U16);
-    
+
     static enum RegisterType {
         // L is followed by H
         U8(1), U16(2), U16_MUL(2), U32(4), SF16_100(2), UF16_100(2), SF16_1000(2), SF32(4), FLAG16(2);
@@ -82,16 +82,40 @@ public enum AHRSRegister {
     final byte registerID;
     final RegisterType type;
     final WriteMode mode;
-    final double extra;
+    final float multiplier;
+    final int flag;
 
-    private AHRSRegister(int registerID, double extra, RegisterType rt, WriteMode mode) {
+    private AHRSRegister(int registerID, float multiplier, RegisterType rt, WriteMode mode) {
         if (registerID < 0 || registerID >= 128 || rt == null || mode == null) {
             throw new IllegalArgumentException();
         }
-        if (extra != 0 && rt != RegisterType.FLAG16 && rt != RegisterType.U16_MUL) {
-            throw new IllegalArgumentException(); // must not pass extra
+        if (multiplier != 0 && rt != RegisterType.U16_MUL) {
+            throw new IllegalArgumentException(); // must not pass multiplier
         }
-        this.extra = extra;
+        if (rt == RegisterType.FLAG16) {
+            // must use other constructor
+            throw new IllegalArgumentException();
+        }
+        this.multiplier = multiplier;
+        this.flag = 0;
+        this.registerID = (byte) registerID;
+        this.type = rt;
+        this.mode = mode;
+    }
+
+    private AHRSRegister(int registerID, int flag, RegisterType rt, WriteMode mode) {
+        if (registerID < 0 || registerID >= 128 || rt == null || mode == null) {
+            throw new IllegalArgumentException();
+        }
+        if (flag != 0 && rt != RegisterType.FLAG16) {
+            throw new IllegalArgumentException(); // must not pass flag
+        }
+        if (rt == RegisterType.U16_MUL) {
+            // must use other constructor
+            throw new IllegalArgumentException();
+        }
+        this.multiplier = 0;
+        this.flag = flag;
         this.registerID = (byte) registerID;
         this.type = rt;
         this.mode = mode;
@@ -99,9 +123,9 @@ public enum AHRSRegister {
 
     private AHRSRegister(int registerID, RegisterType rt, WriteMode mode) {
         this(registerID, 0, rt, mode);
-        if (rt == RegisterType.FLAG16) {
-            throw new IllegalArgumentException(); // must use previous
-                                                  // constructor
+        if (rt == RegisterType.FLAG16 || rt == RegisterType.U16_MUL) {
+            // must use other constructor
+            throw new IllegalArgumentException();
         }
     }
 
@@ -131,7 +155,7 @@ public enum AHRSRegister {
         if (type != RegisterType.FLAG16) {
             throw new RuntimeException("Wrong type!");
         }
-        return (AHRSProtocol.decodeBinaryInt16(io.getRaw(), registerID - io.getOrigin()) & (int) extra) != 0;
+        return (AHRSProtocol.decodeBinaryInt16(io.getRaw(), registerID - io.getOrigin()) & flag) != 0;
     }
 
     public int decodeInt(RegisterIO io) {
@@ -190,7 +214,7 @@ public enum AHRSRegister {
         case SF32:
             return AHRSProtocol.decodeProtocol1616Float(io.getRaw(), registerID - io.getOrigin());
         case U16_MUL:
-            return AHRSProtocol.decodeBinaryInt16(io.getRaw(), registerID - io.getOrigin()) * (float) extra;
+            return AHRSProtocol.decodeBinaryInt16(io.getRaw(), registerID - io.getOrigin()) * multiplier;
         default:
             throw new RuntimeException("Invalid type!");
         }
