@@ -13,7 +13,7 @@ public class AutonomousModePortcullis extends AutonomousBase {
 
     @Tunable(0.5f)
     private FloatInput drivingSpeed;
-    
+
     @Tunable(0.5f)
     private FloatInput portcullisArmSpeed;
 
