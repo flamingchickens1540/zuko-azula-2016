@@ -30,7 +30,7 @@ public class DriveCode {
 
     private static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
     private static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
-    private static final FloatInput driveEncodersAverage = leftDriveEncoder; // right encoder doesn't work at the moment
+    private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
     private static final FloatInput ticksPerSecond = velocityOf(driveEncodersAverage, ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
     private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ticksPerFoot);
 
@@ -46,6 +46,9 @@ public class DriveCode {
 
     private static final FloatCell autonomousLeft = new FloatCell();
     private static final FloatCell autonomousRight = new FloatCell();
+
+    private static final FloatInput coastMultiplier = ZukoAzula.mainTuning.getFloat("Drive Coast Multiplier", 5237.1f);
+    private static final FloatInput coastOffset = ZukoAzula.mainTuning.getFloat("Drive Coast Offset", 986.14f);
 
     public static void setup() throws ExtendedMotorFailureException {
         leftInput.attach(autonomous, autonomousLeft);
@@ -81,6 +84,8 @@ public class DriveCode {
         Cluck.publish("Drive Right Motors", rightInput);
         Cluck.publish("Pit Mode Enable", pitModeEnable);
         Cluck.publish("Drive Feet Per Second", feetPerSecond);
+        Cluck.publish("Drive Encoder Left", leftDriveEncoder);
+        Cluck.publish("Drive Encoder Right", rightDriveEncoder);
         Cluck.publish("Drive Encoders Average", driveEncodersAverage);
         Cluck.publish("Drive Fastest Speed", fastestDriveSpeed.asInput());
         Cluck.publish("Drive Reset Fastest Speed", fastestDriveSpeed.eventSet(0));
@@ -104,6 +109,10 @@ public class DriveCode {
 
     public static FloatInput getEncoder() {
         return driveEncodersAverage;
+    }
+
+    public static float getCoastDistance(float speed) {
+        return Math.max(speed * coastMultiplier.get() + coastOffset.get(), 0);
     }
 
     // Better accuracy than getEncoderVelocity()

@@ -18,6 +18,6 @@ public class AutonomousModeLowBar extends AutonomousBase {
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         setIntakeArm(-.8f);
-        driveDistance(distance.get(), drivingSpeed.get());
+        driveDistance(distance.get(), drivingSpeed.get(), true);
     }
 }
