@@ -23,8 +23,8 @@ public class Portcullis {
     private static final TalonExtendedMotor leftGrabMotor = FRC.talonCAN(12);
     private static final TalonExtendedMotor rightGrabMotor = FRC.talonCAN(13);
 
-    private static final FloatIO leftEncoder = leftGrabMotor.modEncoder().getEncoderPosition();
-    private static final FloatIO rightEncoder = rightGrabMotor.modEncoder().getEncoderPosition();
+    public static final FloatIO leftEncoder = leftGrabMotor.modEncoder().getEncoderPosition();
+    public static final FloatIO rightEncoder = rightGrabMotor.modEncoder().getEncoderPosition();
     private static final FloatInput leftOutputCurrent = leftGrabMotor.modFeedback().getOutputCurrent();
     private static final FloatInput rightOutputCurrent = rightGrabMotor.modFeedback().getOutputCurrent();
 
