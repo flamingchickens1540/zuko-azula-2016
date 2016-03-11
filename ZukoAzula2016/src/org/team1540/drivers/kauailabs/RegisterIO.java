@@ -39,7 +39,7 @@ final class RegisterIO {
                         try {
                             Logger.severe("Error in AHRS loop! " + io_provider.checkAvailable(), thr);
                         } catch (IOException e) {
-                            Logger.severe("Should never happen", e);
+                            Logger.severe("NavX did not immediately recover", e);
                         }
                     }
                 }
