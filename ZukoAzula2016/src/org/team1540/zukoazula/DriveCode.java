@@ -47,9 +47,6 @@ public class DriveCode {
     private static final FloatCell autonomousLeft = new FloatCell();
     private static final FloatCell autonomousRight = new FloatCell();
 
-    private static final FloatInput coastMultiplier = ZukoAzula.mainTuning.getFloat("Drive Coast Multiplier", 5237.1f); // Untuned for Zuko
-    private static final FloatInput coastOffset = ZukoAzula.mainTuning.getFloat("Drive Coast Offset", 986.14f); // Untuned for Zuko
-
     public static void setup() throws ExtendedMotorFailureException {
         leftInput.attach(autonomous, autonomousLeft);
         rightInput.attach(autonomous, autonomousRight);
@@ -111,10 +108,6 @@ public class DriveCode {
         return driveEncodersAverage;
     }
 
-    public static float getCoastDistance(float speed) {
-        return Math.max(speed * coastMultiplier.get() + coastOffset.get(), 0);
-    }
-
     // Better accuracy than getEncoderVelocity()
     private static FloatInput velocityOf(FloatInput input, FloatInput updateThreshold) {
         return new DerivedFloatInput(input) {
@@ -125,8 +118,7 @@ public class DriveCode {
             protected float apply() {
                 long newtime = Time.currentTimeNanos();
                 float newvalue = input.get();
-                // To improve accuracy, if too little time has passed before the
-                // most recent update, it will not update again.
+                // To improve accuracy, if too little time has passed before the most recent update, it will not update again.
                 if (newtime - oldtime < updateThreshold.get() * Time.NANOSECONDS_PER_SECOND) {
                     return this.get();
                 }

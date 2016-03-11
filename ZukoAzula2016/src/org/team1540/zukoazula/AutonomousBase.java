@@ -55,21 +55,13 @@ public abstract class AutonomousBase extends InstinctModeModule {
         allMotors.set(0);
     }
 
-    protected void driveDistance(float feet, float speed, boolean adjust) throws AutonomousModeOverException, InterruptedException {
-        float ticks = feet * DriveCode.ticksPerFoot.get();
-        // If the robot is moving slow enough, coasting time is predictable and can be accounted for by cutting off the drive early.
-        float actualTicks;
-        if (adjust && Math.abs(speed) <= .5f) {
-            actualTicks = ticks - Math.signum(ticks) * DriveCode.getCoastDistance(Math.abs(speed));
-        } else {
-            actualTicks = ticks;
-        }
+    protected void driveDistance(float feet, float speed) throws AutonomousModeOverException, InterruptedException {
         float start = DriveCode.getEncoder().get();
-        allMotors.set(feet > 0 ? Math.abs(speed) : -Math.abs(speed));
+        allMotors.set(feet > 0 ? speed : -speed);
         if (feet > 0) {
-            waitUntilAtLeast(DriveCode.getEncoder(), start + actualTicks);
+            waitUntilAtLeast(DriveCode.getEncoder(), start + feet * DriveCode.ticksPerFoot.get());
         } else {
-            waitUntilAtMost(DriveCode.getEncoder(), start + actualTicks);
+            waitUntilAtMost(DriveCode.getEncoder(), start + feet * DriveCode.ticksPerFoot.get());
         }
         allMotors.set(0);
     }
@@ -122,9 +114,9 @@ public abstract class AutonomousBase extends InstinctModeModule {
         Shooter.stopEvent();
     }
 
-    protected void ejectWhileDrivingBackDistance(float feet, float speed, boolean adjust) throws AutonomousModeOverException, InterruptedException {
+    protected void ejectWhileDrivingBackDistance(float feet, float speed) throws AutonomousModeOverException, InterruptedException {
         Shooter.ejectEvent();
-        driveDistance(-Math.abs(feet), speed, adjust);
+        driveDistance(-Math.abs(feet), speed);
         Shooter.stopEvent();
     }
 

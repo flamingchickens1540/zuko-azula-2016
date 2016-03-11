@@ -23,7 +23,7 @@ public class Autonomous {
         mainModule.addMode(new AutonomousModeRoughTerrain());
         mainModule.addMode(new AutonomousModeLowBarAndBack());
         mainModule.addMode(new AutonomousModeLowBarEject());
-        mainModule.addMode(new AutonomousModePortcullis()); // Untested
+        //mainModule.addMode(new AutonomousModePortcullis());
         mainModule.loadSettings(mainModule.addNullMode("none", "I'm a sitting chicken!"));
         FRC.registerAutonomous(mainModule);
     }

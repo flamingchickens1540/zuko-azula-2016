@@ -24,8 +24,8 @@ public class AutonomousModePortcullis extends AutonomousBase {
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         movePortcullisArmToPosition(0, portcullisArmSpeed.get());
-        driveDistance(distanceToPortcullis.get(), drivingSpeed.get(), true);
+        driveDistance(distanceToPortcullis.get(), drivingSpeed.get());
         movePortcullisArmToPosition(1, portcullisArmSpeed.get());
-        driveDistance(distanceThroughPortcullis.get(), drivingSpeed.get(), true);
+        driveDistance(distanceThroughPortcullis.get(), drivingSpeed.get());
     }
 }
