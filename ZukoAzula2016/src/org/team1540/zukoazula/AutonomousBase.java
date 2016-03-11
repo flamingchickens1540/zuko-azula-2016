@@ -57,7 +57,13 @@ public abstract class AutonomousBase extends InstinctModeModule {
 
     protected void driveDistance(float feet, float speed, boolean adjust) throws AutonomousModeOverException, InterruptedException {
         float ticks = feet * DriveCode.ticksPerFoot.get();
-        float actualTicks = (adjust && Math.abs(speed) <= .5f) ? ticks - Math.signum(ticks) * DriveCode.getCoastDistance(Math.abs(speed)) : ticks;
+        // If the robot is moving slow enough, coasting time is predictable and can be accounted for by cutting off the drive early.
+        float actualTicks;
+        if (adjust && Math.abs(speed) <= .5f) {
+            actualTicks = ticks - Math.signum(ticks) * DriveCode.getCoastDistance(Math.abs(speed));
+        } else {
+            actualTicks = ticks;
+        }
         float start = DriveCode.getEncoder().get();
         allMotors.set(feet > 0 ? Math.abs(speed) : -Math.abs(speed));
         if (feet > 0) {

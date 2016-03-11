@@ -47,8 +47,8 @@ public class DriveCode {
     private static final FloatCell autonomousLeft = new FloatCell();
     private static final FloatCell autonomousRight = new FloatCell();
 
-    private static final FloatInput coastMultiplier = ZukoAzula.mainTuning.getFloat("Drive Coast Multiplier", 5237.1f);
-    private static final FloatInput coastOffset = ZukoAzula.mainTuning.getFloat("Drive Coast Offset", 986.14f);
+    private static final FloatInput coastMultiplier = ZukoAzula.mainTuning.getFloat("Drive Coast Multiplier", 5237.1f); // Untuned for Zuko
+    private static final FloatInput coastOffset = ZukoAzula.mainTuning.getFloat("Drive Coast Offset", 986.14f); // Untuned for Zuko
 
     public static void setup() throws ExtendedMotorFailureException {
         leftInput.attach(autonomous, autonomousLeft);

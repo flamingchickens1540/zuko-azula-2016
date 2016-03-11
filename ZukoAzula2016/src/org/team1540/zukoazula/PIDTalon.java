@@ -47,12 +47,7 @@ public class PIDTalon {
         Cluck.publish(name + " PID I Bounds", tem.modPID().getIntegralBounds());
         Cluck.publish(name + " PID I Accum", tem.modPID().getIAccum());
 
-        encoder.configureEncoderCodesPerRev(125 * 15); // at the
-                                                       // encoder's
-                                                       // location. x2
-                                                       // for drive
-                                                       // train, x? for
-                                                       // arm.
+        encoder.configureEncoderCodesPerRev(125 * 15); // at the encoder's location. x2 for drive train, x? for arm.
 
         tem.modGeneralConfig().configureMaximumOutputVoltage(12.0f, -12.0f);
         Cluck.publish(name + " Closed Loop Error", tem.modFeedback().getClosedLoopError());
