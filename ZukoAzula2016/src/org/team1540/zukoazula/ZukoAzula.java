@@ -41,6 +41,7 @@ public class ZukoAzula implements FRCApplication {
                 entries.add(RConf.string("Left Portcullis Encoder: " + Portcullis.leftEncoder.get()));
                 entries.add(RConf.string("Right Portcullis Encoder: " + Portcullis.rightEncoder.get()));
                 entries.add(RConf.string("Intake Arm Encoder: " + IntakeArm.encoder.get()));
+                entries.add(RConf.string("Shooter Encoder: " + Shooter.encoder.getEncoderPosition().get()));
                 entries.add(RConf.string("Heading Yaw: " + HeadingSensor.yawAngle.get()));
                 entries.add(RConf.string("Heading Pitch: " + HeadingSensor.pitchAngle.get()));
                 entries.add(RConf.autoRefresh(1000));
