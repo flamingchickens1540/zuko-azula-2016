@@ -116,6 +116,12 @@ public abstract class AutonomousBase extends InstinctModeModule {
         Shooter.stopEvent();
     }
 
+    protected void ejectWhileDrivingBackDistance(float feet, float speed, boolean adjust) throws AutonomousModeOverException, InterruptedException {
+        Shooter.ejectEvent();
+        driveDistance(-Math.abs(feet), speed, adjust);
+        Shooter.stopEvent();
+    }
+
     // speed > 0 raises arm, speed < 0 lowers arm
     protected void setIntakeArm(float speed) throws AutonomousModeOverException, InterruptedException {
         IntakeArm.getArmOutput().set(speed);
