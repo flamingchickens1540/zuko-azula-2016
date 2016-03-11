@@ -27,7 +27,7 @@ final class RegisterIO {
                 while (true) {
                     try {
                         if (!io_provider.checkAvailable()) {
-                            Thread.sleep(1000);
+                            Thread.sleep(100);
                             continue;
                         }
                         if (!RegisterIO.this.hasData() || AHRSRegister.UPDATE_RATE_HZ.decodeByte(RegisterIO.this) != update_rate_hz) {
@@ -36,8 +36,11 @@ final class RegisterIO {
                         getCurrentData();
                         Thread.sleep(1000 / update_rate_hz);
                     } catch (Throwable thr) {
-                        Logger.severe("Error in AHRS loop! Sleeping for a bit.", thr);
-                        Thread.sleep(2000);
+                        try {
+                            Logger.severe("Error in AHRS loop! " + io_provider.checkAvailable(), thr);
+                        } catch (IOException e) {
+                            Logger.severe("NavX did not immediately recover", e);
+                        }
                     }
                 }
             }

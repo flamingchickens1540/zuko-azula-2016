@@ -3,20 +3,22 @@ package org.team1540.zukoazula;
 import ccre.channel.FloatInput;
 import ccre.instinct.AutonomousModeOverException;
 
-public class AutonomousModeDriveOverX extends AutonomousBase {
+public class AutonomousModeLowBarEject extends AutonomousBase {
 
-    @Tunable(0.5f)
+    @Tunable(35.0f)
     private FloatInput distance;
 
     @Tunable(0.5f)
     private FloatInput drivingSpeed;
 
-    public AutonomousModeDriveOverX() {
-        super("Drive Over Something");
+    public AutonomousModeLowBarEject() {
+        super("Drive Under Low Bar and Back");
     }
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
-        driveForTime(drivingSpeed.get(), distance.get());
+        setIntakeArm(-.8f);
+        driveDistance(distance.get(), drivingSpeed.get());
+        driveDistance(-distance.get(), drivingSpeed.get());
     }
 }

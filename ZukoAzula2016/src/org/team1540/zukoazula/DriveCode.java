@@ -28,8 +28,8 @@ public class DriveCode {
 
     public static final FloatInput ticksPerFoot = ZukoAzula.mainTuning.getFloat("Ticks Per Foot", 100);
 
-    private static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
-    private static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
+    public static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
+    public static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
     private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
     private static final FloatInput ticksPerSecond = velocityOf(driveEncodersAverage, ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
     private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ticksPerFoot);
@@ -63,7 +63,7 @@ public class DriveCode {
         leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
 
-        Instrumentation.recordDrive(leftInput, rightInput, leftDriveEncoder, rightDriveEncoder);
+        // Instrumentation.recordDrive(leftInput, rightInput, leftDriveEncoder, rightDriveEncoder);
 
         FloatCell fastestDriveSpeed = new FloatCell();
         feetPerSecond.send((newValue) -> {
@@ -81,6 +81,8 @@ public class DriveCode {
         Cluck.publish("Drive Right Motors", rightInput);
         Cluck.publish("Pit Mode Enable", pitModeEnable);
         Cluck.publish("Drive Feet Per Second", feetPerSecond);
+        Cluck.publish("Drive Encoder Left", leftDriveEncoder);
+        Cluck.publish("Drive Encoder Right", rightDriveEncoder);
         Cluck.publish("Drive Encoders Average", driveEncodersAverage);
         Cluck.publish("Drive Fastest Speed", fastestDriveSpeed.asInput());
         Cluck.publish("Drive Reset Fastest Speed", fastestDriveSpeed.eventSet(0));
@@ -116,8 +118,7 @@ public class DriveCode {
             protected float apply() {
                 long newtime = Time.currentTimeNanos();
                 float newvalue = input.get();
-                // To improve accuracy, if too little time has passed before the
-                // most recent update, it will not update again.
+                // To improve accuracy, if too little time has passed before the most recent update, it will not update again.
                 if (newtime - oldtime < updateThreshold.get() * Time.NANOSECONDS_PER_SECOND) {
                     return this.get();
                 }

@@ -8,6 +8,7 @@ import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.ctrl.StateMachine;
+import ccre.drivers.ctre.talon.TalonEncoder;
 import ccre.drivers.ctre.talon.TalonExtendedMotor;
 import ccre.frc.FRC;
 import ccre.timers.PauseTimer;
@@ -19,7 +20,8 @@ public class Shooter {
     private static final EventCell autonomousIntake = new EventCell();
     private static final EventCell autonomousEject = new EventCell();
     private static final EventCell autonomousStop = new EventCell();
-    public static BooleanInput upToSpeed;
+    private static BooleanInput upToSpeed;
+    public static TalonEncoder encoder;
 
     private static EventOutput split(BooleanInput cond, EventOutput t, EventOutput f) {
         return () -> {
@@ -63,6 +65,7 @@ public class Shooter {
 
         PIDTalon flywheelTalon = new PIDTalon(makeLinkedTalons(), "Shooter Flywheel", flywheelTargetVelocity.withRamping(flywheelRampingConstant, FRC.constantPeriodic), 4);
         flywheelTalon.setup();
+        encoder = flywheelTalon.encoder;
 
         BooleanInput intakeButton = ZukoAzula.controlBinding.addBoolean("Shooter Intake");
         BooleanInput ejectButton = ZukoAzula.controlBinding.addBoolean("Shooter Eject");

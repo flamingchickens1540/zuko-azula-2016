@@ -14,6 +14,7 @@ import ccre.rconf.RConf;
 import ccre.rconf.RConf.Entry;
 import ccre.rconf.RConfable;
 import ccre.time.Time;
+import ccre.timers.PauseTimer;
 import ccre.tuning.TuningContext;
 
 public abstract class AutonomousBase extends InstinctModeModule {
@@ -62,6 +63,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
         } else {
             waitUntilAtMost(DriveCode.getEncoder(), start + feet * DriveCode.ticksPerFoot.get());
         }
+        allMotors.set(0);
     }
 
     protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
@@ -112,6 +114,12 @@ public abstract class AutonomousBase extends InstinctModeModule {
         Shooter.stopEvent();
     }
 
+    protected void ejectWhileDrivingBackDistance(float feet, float speed) throws AutonomousModeOverException, InterruptedException {
+        Shooter.ejectEvent();
+        driveDistance(-Math.abs(feet), speed);
+        Shooter.stopEvent();
+    }
+
     // speed > 0 raises arm, speed < 0 lowers arm
     protected void setIntakeArm(float speed) throws AutonomousModeOverException, InterruptedException {
         IntakeArm.getArmOutput().set(speed);
@@ -132,6 +140,19 @@ public abstract class AutonomousBase extends InstinctModeModule {
         Portcullis.getPortcullisOutput().set(0);
     }
 
+    protected void driveUntilPitchOrTimeout(float speed, float desiredPitch, float timeout) throws AutonomousModeOverException, InterruptedException {
+        boolean higher = desiredPitch > HeadingSensor.pitchAngle.get();
+        PauseTimer timer = new PauseTimer((long) (timeout) * Time.MILLISECONDS_PER_SECOND);
+        allMotors.set(speed);
+        timer.event();
+        if (higher) {
+            waitUntilOneOf(HeadingSensor.pitchAngle.atLeast(desiredPitch), timer.not());
+        } else {
+            waitUntilOneOf(HeadingSensor.pitchAngle.atMost(desiredPitch), timer.not());
+        }
+        allMotors.set(0);
+    }
+
     @Override
     public void loadSettings(TuningContext ctx) {
         ArrayList<String> settings = new ArrayList<>();
@@ -140,7 +161,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
             if (annot != null) {
                 f.setAccessible(true);
                 try {
-                    String name = "Auto Mode " + getModeName() + " " + toTitleCase(f.getName()) + " +A";
+                    String name = "Auto Mode " + getModeName() + " " + toTitleCase(f.getName());
                     if (f.getType() == FloatInput.class) {
                         f.set(this, ctx.getFloat(name, annot.value()));
                     } else if (f.getType() == BooleanInput.class) {

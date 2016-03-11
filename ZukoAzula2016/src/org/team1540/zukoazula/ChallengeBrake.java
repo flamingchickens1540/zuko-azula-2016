@@ -12,14 +12,15 @@ public class ChallengeBrake {
     private static final BooleanInput secondTrigger = ZukoAzula.controlBinding.addBoolean("Challenge Brake B");
     private static final BooleanInput composedTriggers = FRC.inTeleopMode().and(firstTrigger).and(secondTrigger);
 
-    private static final FloatOutput servos = FRC.servo(0, 0, 1).combine(FRC.servo(1, 1, 0));
+    // needs to be this for Zuko; the reverse for Azula.
     private static final BooleanCell servoState = new BooleanCell();
     public static final BooleanInput driveBrake = servoState;
 
     public static void setup() {
         servoState.setTrueWhen(composedTriggers.onPress());
         servoState.setFalseWhen(FRC.startDisabled);
-        servoState.toFloat(0, 1).send(servos);
+        servoState.toFloat(ZukoAzula.mainTuning.getFloat("Challenge Retracted Left", 1.0f), ZukoAzula.mainTuning.getFloat("Challenge Extended Left", 0.373f)).send(FRC.servo(0, 0, 1));
+        servoState.toFloat(ZukoAzula.mainTuning.getFloat("Challenge Retracted Right", 0.0f), ZukoAzula.mainTuning.getFloat("Challenge Extended Right", 0.186f)).send(FRC.servo(1, 0, 1));
         Cluck.publish("Challenge Brake State", servoState);
     }
 }

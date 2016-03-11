@@ -16,9 +16,14 @@ public class Autonomous {
     public static void setup() {
         mainModule.publishDefaultControls(true, true);
         mainModule.publishRConfControls();
-        mainModule.addMode(new AutonomousModeDriveOverX());
-        mainModule.addMode(new AutonomousModeLowBar());
-        mainModule.addMode(new AutonomousModePortcullis());
+        mainModule.addMode(new AutonomousModeLowBar()); // Will need to be retuned after we fix the encoders
+        mainModule.addMode(new AutonomousModeRockWall());
+        mainModule.addMode(new AutonomousModeMoat());
+        mainModule.addMode(new AutonomousModeRamparts());
+        mainModule.addMode(new AutonomousModeRoughTerrain());
+        mainModule.addMode(new AutonomousModeLowBarAndBack());
+        mainModule.addMode(new AutonomousModeLowBarEject());
+        //mainModule.addMode(new AutonomousModePortcullis());
         mainModule.loadSettings(mainModule.addNullMode("none", "I'm a sitting chicken!"));
         FRC.registerAutonomous(mainModule);
     }
