@@ -14,6 +14,7 @@ import ccre.rconf.RConf;
 import ccre.rconf.RConf.Entry;
 import ccre.rconf.RConfable;
 import ccre.time.Time;
+import ccre.timers.PauseTimer;
 import ccre.tuning.TuningContext;
 
 public abstract class AutonomousBase extends InstinctModeModule {
@@ -54,14 +55,17 @@ public abstract class AutonomousBase extends InstinctModeModule {
         allMotors.set(0);
     }
 
-    protected void driveDistance(float feet, float speed) throws AutonomousModeOverException, InterruptedException {
+    protected void driveDistance(float feet, float speed, boolean adjust) throws AutonomousModeOverException, InterruptedException {
+        float ticks = feet * DriveCode.ticksPerFoot.get();
+        float actualTicks = (adjust && Math.abs(speed) <= .5f) ? ticks - Math.signum(ticks) * DriveCode.getCoastDistance(Math.abs(speed)) : ticks;
         float start = DriveCode.getEncoder().get();
-        allMotors.set(feet > 0 ? speed : -speed);
+        allMotors.set(feet > 0 ? Math.abs(speed) : -Math.abs(speed));
         if (feet > 0) {
-            waitUntilAtLeast(DriveCode.getEncoder(), start + feet * DriveCode.ticksPerFoot.get());
+            waitUntilAtLeast(DriveCode.getEncoder(), start + actualTicks);
         } else {
-            waitUntilAtMost(DriveCode.getEncoder(), start + feet * DriveCode.ticksPerFoot.get());
+            waitUntilAtMost(DriveCode.getEncoder(), start + actualTicks);
         }
+        allMotors.set(0);
     }
 
     protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
@@ -132,6 +136,19 @@ public abstract class AutonomousBase extends InstinctModeModule {
         Portcullis.getPortcullisOutput().set(0);
     }
 
+    protected void driveUntilPitchOrTimeout(float speed, float desiredPitch, float timeout) throws AutonomousModeOverException, InterruptedException {
+        boolean higher = desiredPitch > HeadingSensor.pitchAngle.get();
+        PauseTimer timer = new PauseTimer((long) (timeout) * Time.MILLISECONDS_PER_SECOND);
+        allMotors.set(speed);
+        timer.event();
+        if (higher) {
+            waitUntilOneOf(HeadingSensor.pitchAngle.atLeast(desiredPitch), timer.not());
+        } else {
+            waitUntilOneOf(HeadingSensor.pitchAngle.atMost(desiredPitch), timer.not());
+        }
+        allMotors.set(0);
+    }
+
     @Override
     public void loadSettings(TuningContext ctx) {
         ArrayList<String> settings = new ArrayList<>();
@@ -140,7 +157,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
             if (annot != null) {
                 f.setAccessible(true);
                 try {
-                    String name = "Auto Mode " + getModeName() + " " + toTitleCase(f.getName()) + " +A";
+                    String name = "Auto Mode " + getModeName() + " " + toTitleCase(f.getName());
                     if (f.getType() == FloatInput.class) {
                         f.set(this, ctx.getFloat(name, annot.value()));
                     } else if (f.getType() == BooleanInput.class) {

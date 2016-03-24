@@ -18,6 +18,6 @@ public class HeadingSensor {
         Cluck.publish("Heading Yaw Reset", sensor.eventZeroYaw());
         Cluck.publish("Heading Pitch Angle", pitchAngle);
         Cluck.publish("Heading Connected", sensor.getConnected());
-        Instrumentation.recordHeading(sensor.getConnected(), yawAngle, yawRate, pitchAngle);
+        //Instrumentation.recordHeading(sensor.getConnected(), yawAngle, yawRate, pitchAngle);
     }
 }

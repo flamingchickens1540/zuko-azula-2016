@@ -5,7 +5,7 @@ import ccre.instinct.AutonomousModeOverException;
 
 public class AutonomousModeLowBar extends AutonomousBase {
 
-    @Tunable(18.0f)
+    @Tunable(20.0f)
     private FloatInput distance;
 
     @Tunable(0.5f)
@@ -17,7 +17,7 @@ public class AutonomousModeLowBar extends AutonomousBase {
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
-        setIntakeArm(-.8f);
-        driveDistance(distance.get(), drivingSpeed.get());
+        setIntakeArm(-.5f);
+        driveDistance(distance.get(), drivingSpeed.get(), false);
     }
 }

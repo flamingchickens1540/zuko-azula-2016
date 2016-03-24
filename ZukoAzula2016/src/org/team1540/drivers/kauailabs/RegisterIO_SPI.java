@@ -19,7 +19,7 @@ class RegisterIO_SPI {
     private final SPIIO port;
     private final ByteBuffer local = ByteBuffer.allocateDirect(256);
 
-    public static final int DEFAULT_SPI_BITRATE_HZ = 500000;
+    public static final int DEFAULT_SPI_BITRATE_HZ = 100000; // originally 500000
 
     public RegisterIO_SPI(SPIBus spi_port, int bitrate) {
         port = spi_port.configure(bitrate, true, true, true, true);

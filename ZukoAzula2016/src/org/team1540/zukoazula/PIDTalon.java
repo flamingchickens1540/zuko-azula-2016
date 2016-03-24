@@ -82,10 +82,8 @@ public class PIDTalon {
     public void setup() throws ExtendedMotorFailureException {
         FloatInput control = this.targetSpeed;
         control = wrapForTests(name + " Motor", control);
-        FloatOutput speed = PowerManager.managePower(this.priority, tem.asMode(OutputControlMode.SPEED_FIXED));
-        if (speed == null) {
-            throw new ExtendedMotorFailureException();
-        }
+        FloatOutput speed = SelfTest.manageModes(tem, OutputControlMode.SPEED_FIXED, "shooter-primary");
+        speed = PowerManager.managePower(this.priority, speed);
         tem.enable();
         Cluck.publish(name + " Expected Speed", control);
         control.send(speed);
