@@ -50,6 +50,31 @@ public class DriveCode {
     private static final FloatInput coastMultiplier = ZukoAzula.mainTuning.getFloat("Drive Coast Multiplier", 5237.1f);
     private static final FloatInput coastOffset = ZukoAzula.mainTuning.getFloat("Drive Coast Offset", 986.14f);
 
+    public static final FloatInput maximumCurrent;
+    static {
+        FloatInput[] of = new FloatInput[rightCANs.length + leftCANs.length];
+        for (int i = 0; i < rightCANs.length; i++) {
+            of[i] = rightCANs[i].modFeedback().getOutputCurrent();
+        }
+        for (int i = 0; i < leftCANs.length; i++) {
+            of[rightCANs.length + i] = leftCANs[i].modFeedback().getOutputCurrent();
+        }
+        maximumCurrent = maxOf(of);
+    }
+
+    private static FloatInput maxOf(FloatInput[] inputs) {
+        return new DerivedFloatInput(inputs) {
+            @Override
+            protected float apply() {
+                float f = 0;
+                for (FloatInput i : inputs) {
+                    f = Math.max(f, i.get());
+                }
+                return f;
+            }
+        };
+    }
+
     public static void setup() throws ExtendedMotorFailureException {
         leftInput.attach(autonomous, autonomousLeft);
         rightInput.attach(autonomous, autonomousRight);
@@ -60,8 +85,8 @@ public class DriveCode {
         leftInput.attach(challenge, FloatInput.zero);
         rightInput.attach(challenge, FloatInput.zero);
 
-        FloatOutput leftMotors = PowerManager.managePower(2, FloatOutput.combine(simpleAll(leftCANs, FRC.MOTOR_FORWARD)));
-        FloatOutput rightMotors = PowerManager.managePower(2, FloatOutput.combine(simpleAll(rightCANs, FRC.MOTOR_REVERSE)));
+        FloatOutput leftMotors = PowerManager.managePower(2, FloatOutput.combine(SelfTest.wrapDrive(leftCANs, FRC.MOTOR_FORWARD, false)));
+        FloatOutput rightMotors = PowerManager.managePower(2, FloatOutput.combine(SelfTest.wrapDrive(rightCANs, FRC.MOTOR_REVERSE, true)));
 
         leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));

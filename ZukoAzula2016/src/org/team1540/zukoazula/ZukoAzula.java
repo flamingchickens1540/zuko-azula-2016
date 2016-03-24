@@ -52,5 +52,30 @@ public class ZukoAzula implements FRCApplication {
                 return false;
             }
         });
+
+        Cluck.publishRConf("(COMMON)", new RConfable() {
+            @Override
+            public boolean signalRConf(int field, byte[] data) throws InterruptedException {
+                return false;
+            }
+
+            @Override
+            public Entry[] queryRConf() throws InterruptedException {
+                ArrayList<Entry> ents = new ArrayList<>();
+                ents.add(RConf.title("Common Options"));
+                ents.add(RConf.cluckRef("(PIT) Self Test"));
+                ents.add(RConf.cluckRef("Autonomous Mode Selector"));
+                ents.add(RConf.cluckRef("Challenge Brake State"));
+                ents.add(RConf.cluckRef("Diagnostics"));
+                ents.add(RConf.cluckRef("Heading Connected"));
+                ents.add(RConf.cluckRef("Heading Yaw Angle"));
+                ents.add(RConf.cluckRef("Pit Mode Enable"));
+                ents.add(RConf.cluckRef("Save Tuning for MainTuning"));
+                ents.add(RConf.cluckRef("Save Tuning for AutonomousTuning"));
+                ents.add(RConf.cluckRef("Shooter Flywheel Target High Speed"));
+                ents.add(RConf.cluckRef("Shooter Flywheel Velocity"));
+                return ents.toArray(new Entry[ents.size()]);
+            }
+        });
     }
 }

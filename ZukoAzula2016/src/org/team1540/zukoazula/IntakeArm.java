@@ -29,7 +29,7 @@ public class IntakeArm {
     private static final BehaviorArbitrator armBehaviors = new BehaviorArbitrator("Intake Arm Behaviors");
     private static final ArbitratedFloat control = armBehaviors.addFloat();
 
-    private static final FloatInput passiveSpeed = ZukoAzula.mainTuning.getFloat("Intake Arm Counteract Gravity Speed", .1f);
+    private static final FloatInput passiveSpeed = ZukoAzula.mainTuning.getFloat("Intake Arm Counteract Gravity Speed", .06f);
 
     private static final FloatCell autonomousVelocity = new FloatCell();
     private static BooleanInput autonomousStop;
