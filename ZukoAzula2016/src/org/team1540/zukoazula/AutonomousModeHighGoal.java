@@ -24,11 +24,16 @@ public class AutonomousModeHighGoal extends AutonomousBase {
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
+        turnForTime(0.3f, -0.7f);
         swap = null;
         Thread thread = new Thread(() -> {
+            try {
+                webcam = new WebcamReader("10.15.40.12", 500);
+            } catch (Exception e1) {
+                throw new RuntimeException(e1);
+            }
             while (FRC.isAutonomous.get()) {
                 try {
-                    webcam = new WebcamReader("10.15.40.12", 500);
                     swap = webcam.readNext();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -45,16 +50,16 @@ public class AutonomousModeHighGoal extends AutonomousBase {
             long currentTime = System.nanoTime();
             currentImage = swap;
             List<Goal> goals = processor.findGoals(currentImage, 
-                    245, // red target
-                    50, // green target
+                    205, // red target
+                    20, // green target
                     10, // blue target
                     70, // red threshold
                     70, // green threshold
                     20, // blue threshold
                     50, // min goal pixel count
-                    0.6f, // similarity threshold
+                    200.0f, // similarity threshold
                     3.2f, // goal aspect ratio
-                    1.0f); // goal aspect ratio threshold
+                    20.0f); // goal aspect ratio threshold
             
             Goal target = null;
             for (Goal g : goals) {
@@ -64,34 +69,31 @@ public class AutonomousModeHighGoal extends AutonomousBase {
             }
             
             if (target != null) {
-                float centerX = (target.ll.x + target.lr.x + target.ul.x + target.ur.x) / 4.0f;
-                float centerY = (target.ll.y + target.lr.y + target.ul.y + target.ur.y) / 4.0f;
+                float bottomAverageY = (target.ll.y + target.lr.y) / 2.0f;
+                float bottomAverageX = (target.ll.x + target.lr.x) / 2.0f;
+                float bottomDistance = (float) Math.sqrt((bottomAverageX - 245.0f)*(bottomAverageX - 245.0f)*0.8f + (bottomAverageY - 0.0f)*(bottomAverageY - 0.0f));
+                float distance = 1.1f*(0.000103f*bottomDistance*bottomDistance - 0.012f*bottomDistance + 0.4211f);
+                float angle = (bottomAverageX-245.0f)/(distance+3.0f);
                 
-                if (Math.abs(centerX - 225.0) > 20.0f) {
-                    float direction = Math.signum(centerX - 225.0f);
-                    turnForTime(0.07f, direction*0.5f);
-                    waitForTime(100);
-                } else {
-                    if (target.shape.getCount() < 845) {
-                        alreadyLocked = true;
-                        driveForTime(0.1f, 0.4f);
+                if (Math.abs(angle - 0.0f) < 2.0f) {
+                    if (distance > 4.0f) {
+                        driveForTime(0.3f, 0.3f);
+                    } else if (distance > 1.0f) {
+                        driveForTime(0.2f, 0.3f);
+                        waitForTime(100);
                     } else {
+                        turnForTime(0.08f, 0.5f);
+                        fire(1.5f);
                         break;
                     }
-                }
-                
-                System.out.println("Number of goals: " + goals.size() + "; Center X: " + centerX);
-            } else {
-                if (alreadyLocked) {
-                    //turnForTime(0.1f, -0.3f);
-                    driveForTime(0.1f, 0.4f);
-                    fire(2.0f);
-                    break; 
                 } else {
-                    turnForTime(0.2f, 0.5f);
+//                    turnAngle((float) (Math.PI*angle/360.0f), true);
+                    turnForTime(0.1f*(distance+24.0f)/32.0f, Math.signum(angle)*0.5f);
                     waitForTime(100);
                 }
-                System.out.println("Number of goals: " + goals.size());                
+            } else {
+                turnForTime(0.2f, 0.5f);
+                waitForTime(100);
             }
         }
     }

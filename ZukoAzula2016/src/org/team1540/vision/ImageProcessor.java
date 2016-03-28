@@ -183,6 +183,8 @@ public class ImageProcessor {
     }
 
     private void writeFill(boolean[] dst, int width, int x, int y) {
+        if (x + y * width >= dst.length)
+            return;
         if (dst[x + y * width])
             return;
         Queue<Integer> toCheck = new LinkedList<>();
