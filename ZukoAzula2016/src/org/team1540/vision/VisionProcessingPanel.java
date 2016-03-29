@@ -71,8 +71,10 @@ public class VisionProcessingPanel extends JPanel {
                 g.drawString("LL.y-LR.y: " + (target.ll.y-target.lr.y) + ";\t\t(LL.y+LR.y)/2: "+((target.ll.y+target.lr.y)/2.0f), 4, img.getHeight()+42);
                 float bottomAverageY = (target.ll.y + target.lr.y) / 2.0f;
                 float bottomAverageX = (target.ll.x + target.lr.x) / 2.0f;
-                float bottomDistance = (float) Math.sqrt((bottomAverageX - 245.0f)*(bottomAverageX - 245.0f)*0.8f + (bottomAverageY - 0.0f)*(bottomAverageY - 0.0f));
-                float distance = 1.1f*(0.000103f*bottomDistance*bottomDistance - 0.012f*bottomDistance + 0.4211f);
+                //float bottomDistance = (float) Math.sqrt((bottomAverageX - 245.0f)*(bottomAverageX - 245.0f)*0.8f + (bottomAverageY - 0.0f)*(bottomAverageY - 0.0f));
+                //float distance = 1.1f*(0.000103f*bottomDistance*bottomDistance - 0.012f*bottomDistance + 0.4211f);
+                float llLength = (float) target.ll.distance(target.lr);
+                float distance = 0.0018f*llLength*llLength - 0.4529f*llLength + 31.3f;
                 g.drawString("Distance: " + distance, 4, img.getHeight()+56);
                 float angle = (bottomAverageX-245.0f)/(distance+3.0f);
                 g.drawString("Angle: " + angle, 4, img.getHeight()+70);
