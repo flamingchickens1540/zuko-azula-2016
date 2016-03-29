@@ -32,7 +32,7 @@ public class AutonomousModeHighGoal extends AutonomousBase {
             } catch (Exception e1) {
                 throw new RuntimeException(e1);
             }
-            while (FRC.isAutonomous.get()) {
+            while (FRC.inAutonomousMode().get()) {
                 try {
                     swap = webcam.readNext();
                 } catch (IOException e) {
@@ -46,7 +46,7 @@ public class AutonomousModeHighGoal extends AutonomousBase {
         while (swap == null) /* do nothing */;
         BufferedImage currentImage = swap;
         processor = new ImageProcessor(currentImage.getWidth(), currentImage.getHeight());
-        while (FRC.isAutonomous.get()) {
+        while (FRC.inAutonomousMode().get()) {
             long currentTime = System.nanoTime();
             currentImage = swap;
             List<Goal> goals = processor.findGoals(currentImage, 
