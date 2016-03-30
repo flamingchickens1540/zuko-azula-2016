@@ -20,7 +20,6 @@ public class Autonomous {
     public static void setup() {
         mainModule.publishDefaultControls(true, true);
         mainModule.publishRConfControls();
-        mainModule.addMode(new AutonomousModeTestSpeeds());
         // Will need to be retuned after we fix the encoders
         mainModule.addMode(new AutonomousModeLowBar());
         mainModule.addMode(new AutonomousModeRockWall());

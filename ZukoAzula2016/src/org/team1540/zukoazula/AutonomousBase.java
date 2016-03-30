@@ -23,7 +23,7 @@ public abstract class AutonomousBase extends InstinctModeModule {
     private static final FloatOutput turnMotors = DriveCode.getLeftOutput().combine(DriveCode.getRightOutput().negate());
 
     private static final FloatInput rotateMultiplier = Autonomous.autoTuning.getFloat("Autonomous Rotate Multiplier", 1);
-    private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 0);
+    private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 20);
     private static final FloatInput rotateSpeed = Autonomous.autoTuning.getFloat("Autonomous Rotate Speed", .5f);
     private static final FloatInput portcullisWiggleRoom = Autonomous.autoTuning.getFloat("Autonomous Portcullis Wiggle Room", .05f);
 
@@ -75,19 +75,18 @@ public abstract class AutonomousBase extends InstinctModeModule {
     }
 
     protected void turnAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
-        float start = HeadingSensor.yawAngle.get();
-        if (degrees > 0) {
-            float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() + rotateOffset.get() : degrees;
-            if (actualDegrees > 0) {
-                turnMotors.set(rotateSpeed.get());
-                waitUntilAtMost(HeadingSensor.yawAngle, start - actualDegrees);
-            }
+        float adjustedDegrees = degrees;
+        if (adjustAngle) {
+            // The robot will turn farther than the given angle due to excess momentum, so we account for that here
+            adjustedDegrees = Math.max(Math.abs(degrees) / rotateMultiplier.get() - rotateOffset.get(), Math.abs(degrees));
+        }
+        float start = HeadingSensor.absoluteYaw.get();
+        if (adjustedDegrees > 0) {
+            turnMotors.set(rotateSpeed.get());
+            waitUntilAtLeast(HeadingSensor.absoluteYaw, start + adjustedDegrees);
         } else {
-            float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() - rotateOffset.get() : degrees;
-            if (actualDegrees < 0) {
-                turnMotors.set(-rotateSpeed.get());
-                waitUntilAtLeast(HeadingSensor.yawAngle, start - actualDegrees);
-            }
+            turnMotors.set(-rotateSpeed.get());
+            waitUntilAtMost(HeadingSensor.absoluteYaw, start + adjustedDegrees);
         }
         allMotors.set(0);
     }
