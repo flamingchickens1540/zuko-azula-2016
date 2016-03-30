@@ -20,7 +20,9 @@ public class AutonomousModeLowBarAutoShoot extends AutonomousBase {
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
+        setIntakeArm(-.5f);
         driveUntilStall(drivingSpeed.get());
+        setIntakeArm(0);
         driveForTime(backTime.get(), -drivingSpeed.get());
         turnAngle(90, true);
         // activate automatic shooting
