@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 import ccre.concurrency.ReporterThread;
 import ccre.log.Logger;
 
-class WebcamThread {
+public class WebcamThread {
 
     private volatile String address;
     private volatile boolean terminate = false;

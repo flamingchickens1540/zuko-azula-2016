@@ -21,6 +21,14 @@ public class ImageProcessor {
         preallocatedAlreadyMarked = new boolean[imgWidth*imgHeight];
     }
     
+    public ImageProcessor useOrRealloc(int imgWidth, int imgHeight) {
+        if (imgWidth * imgHeight == preallocatedAlreadyMarked.length) {
+            return this; // can be reused
+        } else {
+            return new ImageProcessor(imgWidth, imgHeight);
+        }
+    }
+
     public List<Goal> findGoals(BufferedImage image, 
             int redTarget,
             int greenTarget,
