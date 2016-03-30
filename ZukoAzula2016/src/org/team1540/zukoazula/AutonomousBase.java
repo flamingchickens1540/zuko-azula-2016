@@ -4,9 +4,12 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import ccre.channel.BooleanInput;
+import ccre.channel.CancelOutput;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
+import ccre.ctrl.PIDController;
+import ccre.frc.FRC;
 import ccre.instinct.AutonomousModeOverException;
 import ccre.instinct.InstinctModeModule;
 import ccre.log.Logger;
@@ -26,6 +29,10 @@ public abstract class AutonomousBase extends InstinctModeModule {
     private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 20);
     private static final FloatInput rotateSpeed = Autonomous.autoTuning.getFloat("Autonomous Rotate Speed", .5f);
     private static final FloatInput portcullisWiggleRoom = Autonomous.autoTuning.getFloat("Autonomous Portcullis Wiggle Room", .05f);
+    private static final FloatInput turningP = Autonomous.autoTuning.getFloat("Autonomous PID P", .1f);
+    private static final FloatInput turningI = Autonomous.autoTuning.getFloat("Autonomous PID I", 0);
+    private static final FloatInput turningD = Autonomous.autoTuning.getFloat("Autonomous PID D", 0);
+    private static final FloatInput turningError = Autonomous.autoTuning.getFloat("Autonomous Turning Acceptable Error", 2);
 
     public AutonomousBase(String modeName) {
         super(modeName);
@@ -77,6 +84,17 @@ public abstract class AutonomousBase extends InstinctModeModule {
     protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitSeconds(seconds);
+        allMotors.set(0);
+    }
+
+    protected void turnToAngle(float angle) throws AutonomousModeOverException, InterruptedException {
+        FloatInput desiredAngle = FloatInput.always(angle);
+        PIDController pid = new PIDController(HeadingSensor.absoluteYaw, desiredAngle, turningP, turningI, turningD);
+        pid.setOutputBounds(.5f);
+        pid.updateWhen(FRC.constantPeriodic);
+        CancelOutput cancel = pid.send(turnMotors);
+        waitUntil(HeadingSensor.absoluteYaw.minus(desiredAngle).inRange(turningError.negated(), turningError));
+        cancel.cancel();
         allMotors.set(0);
     }
 

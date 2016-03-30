@@ -22,11 +22,15 @@ public class Autonomous {
         mainModule.publishRConfControls();
         // Will need to be retuned after we fix the encoders
         mainModule.addMode(new AutonomousModeLowBar());
-        mainModule.addMode(new AutonomousModeLowBarAutoShoot());
+        mainModule.addMode(new AutonomousModeLowBarShallAndShoot());
         mainModule.addMode(new AutonomousModeRockWall());
+        mainModule.addMode(new AutonomousModeRockWallShoot());
         mainModule.addMode(new AutonomousModeMoat());
+        mainModule.addMode(new AutonomousModeMoatShoot());
         mainModule.addMode(new AutonomousModeRamparts());
+        mainModule.addMode(new AutonomousModeRampartsShoot());
         mainModule.addMode(new AutonomousModeRoughTerrain());
+        mainModule.addMode(new AutonomousModeRoughTerrainShoot());
         mainModule.addMode(new AutonomousModePortcullis()); // Untested
         mainModule.loadSettings(mainModule.addNullMode("none", "I'm a sitting chicken!"));
         Cluck.publish("(TEST) SPIKE CUR", DriveCode.maximumCurrent);
