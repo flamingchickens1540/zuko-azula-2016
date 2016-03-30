@@ -68,6 +68,12 @@ public abstract class AutonomousBase extends InstinctModeModule {
         allMotors.set(0);
     }
 
+    protected void driveUntilStall(float speed) throws AutonomousModeOverException, InterruptedException {
+        allMotors.set(speed);
+        waitUntil(DriveCode.isStalling());
+        allMotors.set(0);
+    }
+
     protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitSeconds(seconds);
