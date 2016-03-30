@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 
+import org.team1540.vision.CalibrationTool;
 import org.team1540.vision.Goal;
 import org.team1540.vision.ImageProcessor;
 import org.team1540.vision.WebcamReader;
@@ -26,7 +27,7 @@ public class AutonomousModeHighGoal extends AutonomousBase {
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         swap = null;
         Thread thread = new Thread(() -> {
-            while (FRC.isAutonomous.get()) {
+            while (FRC.inAutonomousMode().get()) {
                 try {
                     webcam = new WebcamReader("10.15.40.12", 500);
                     swap = webcam.readNext();
@@ -41,16 +42,16 @@ public class AutonomousModeHighGoal extends AutonomousBase {
         while (swap == null) /* do nothing */;
         BufferedImage currentImage = swap;
         processor = new ImageProcessor(currentImage.getWidth(), currentImage.getHeight());
-        while (FRC.isAutonomous.get()) {
+        while (FRC.inAutonomousMode().get()) {
             long currentTime = System.nanoTime();
             currentImage = swap;
             List<Goal> goals = processor.findGoals(currentImage, 
-                    245, // red target
-                    50, // green target
-                    10, // blue target
-                    70, // red threshold
-                    70, // green threshold
-                    20, // blue threshold
+                    (int) CalibrationTool.redTarget.get(), // red target
+                    (int) CalibrationTool.greenTarget.get(), // green target
+                    (int) CalibrationTool.blueTarget.get(), // blue target
+                    (int) CalibrationTool.redThreshold.get(), // red threshold
+                    (int) CalibrationTool.greenThreshold.get(), // green threshold
+                    (int) CalibrationTool.blueThreshold.get(), // blue threshold
                     50, // min goal pixel count
                     0.6f, // similarity threshold
                     3.2f, // goal aspect ratio
