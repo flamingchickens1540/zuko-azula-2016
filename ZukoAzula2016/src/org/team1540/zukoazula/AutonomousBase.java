@@ -99,10 +99,11 @@ public abstract class AutonomousBase extends InstinctModeModule {
     }
 
     protected void turnAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
-        float adjustedDegrees = degrees;
-        if (adjustAngle) {
-            // The robot will turn farther than the given angle due to excess momentum, so we account for that here
-            adjustedDegrees = Math.max(Math.abs(degrees) / rotateMultiplier.get() - rotateOffset.get(), Math.abs(degrees));
+        float adjustedDegrees = Math.abs(degrees) / rotateMultiplier.get() - rotateOffset.get();
+        if (adjustAngle && adjustedDegrees > 0) {
+            adjustedDegrees *= Math.signum(degrees);
+        } else {
+            adjustedDegrees = degrees;
         }
         float start = HeadingSensor.absoluteYaw.get();
         if (adjustedDegrees > 0) {
