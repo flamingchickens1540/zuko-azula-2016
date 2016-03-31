@@ -66,19 +66,6 @@ public class AutonomousModeHighGoal extends AutonomousBase {
                     }
                 }
 
-//              if (target != null) {
-//                  float llLength = (float) target.ll.distance(target.lr);
-//                  float bottomAverageX = (target.ll.x + target.lr.x) / 2.0f;
-//                  float distance = 0.0018f*llLength*llLength - 0.4529f*llLength + 31.3f;
-//                  float angle = (bottomAverageX-245.0f)/(distance+3.0f);
-//                  System.out.println("Turning: " + (angle));
-//                  turnAngle(angle*0.01f, false);
-//                  waitForTime(200);
-//              } else {
-//                  turnForTime(0.2f, 0.5f);
-//                  waitForTime(200);
-//              }
-
                 if (target != null) {
                     float bottomAverageY = (target.ll.y + target.lr.y) / 2.0f;
                     float bottomAverageX = (target.ll.x + target.lr.x) / 2.0f;
@@ -99,9 +86,6 @@ public class AutonomousModeHighGoal extends AutonomousBase {
                             break;
                         }
                     } else {
-                        // turnAngle((float) (Math.PI*angle/360.0f), true);
-                        // turnForTime(0.1f*(distance+24.0f)/32.0f,
-                        // Math.signum(angle)*0.5f);
                         turnForTime(0.15f, Math.signum(angle) * 0.5f);
                         waitForTime(100);
                     }

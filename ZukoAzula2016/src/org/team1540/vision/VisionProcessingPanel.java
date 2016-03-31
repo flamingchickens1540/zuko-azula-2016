@@ -24,7 +24,7 @@ public class VisionProcessingPanel extends JPanel {
         try {
             img = webcam.readNext();
             List<Goal> goals = processor.findGoals(img, 
-                    170, // red target
+                    205, // red target
                     20, // green target
                     10, // blue target
                     70, // red threshold
