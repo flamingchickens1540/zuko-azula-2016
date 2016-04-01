@@ -4,7 +4,7 @@ import ccre.channel.FloatInput;
 import ccre.cluck.Cluck;
 import ccre.instinct.AutonomousModeOverException;
 
-public class AutonomousModeRoughTerrainShoot extends AutonomousBase {
+public class AutonomousModeRoughTerrainShoot extends AutonomousBaseHighGoal {
 
     @Tunable(30f)
     private FloatInput distance;
@@ -27,6 +27,6 @@ public class AutonomousModeRoughTerrainShoot extends AutonomousBase {
         float startAngle = HeadingSensor.absoluteYaw.get();
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
         turnAngle(startAngle - HeadingSensor.absoluteYaw.get(), true);
-        // shoot!
+        runVisionAutonomous();
     }
 }

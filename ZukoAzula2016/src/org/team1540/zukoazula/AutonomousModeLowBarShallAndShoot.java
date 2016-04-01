@@ -3,7 +3,7 @@ package org.team1540.zukoazula;
 import ccre.channel.FloatInput;
 import ccre.instinct.AutonomousModeOverException;
 
-public class AutonomousModeLowBarShallAndShoot extends AutonomousBase {
+public class AutonomousModeLowBarShallAndShoot extends AutonomousBaseHighGoal {
 
     @Tunable(0.5f)
     private FloatInput drivingSpeed;
@@ -25,6 +25,6 @@ public class AutonomousModeLowBarShallAndShoot extends AutonomousBase {
         setIntakeArm(0);
         driveForTime(backTime.get(), -drivingSpeed.get());
         turnAngle(90, true);
-        // shoot!
+        runVisionAutonomous();
     }
 }
