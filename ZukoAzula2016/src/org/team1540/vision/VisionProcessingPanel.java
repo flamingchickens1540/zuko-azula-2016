@@ -31,9 +31,9 @@ public class VisionProcessingPanel extends JPanel {
                     70, // green threshold
                     20, // blue threshold
                     50, // min goal pixel count
-                    200.0f, // similarity threshold
+                    0.1f, // similarity threshold
                     3.2f, // goal aspect ratio
-                    20.0f); // goal aspect ratio threshold
+                    2.0f); // goal aspect ratio threshold
             setSize(img.getWidth(), img.getHeight()+200);
             g.drawImage(img, 0, 0, img.getWidth(), img.getHeight(), Color.white, null);
             g.setColor(Color.black);
