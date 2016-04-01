@@ -1,16 +1,13 @@
 package org.team1540.zukoazula;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.List;
 
 import org.team1540.vision.Goal;
 import org.team1540.vision.ImageProcessor;
-import org.team1540.vision.WebcamReader;
 import org.team1540.vision.WebcamThread;
 
-import ccre.concurrency.ReporterThread;
-import ccre.frc.FRC;
+import ccre.channel.FloatInput;
 import ccre.instinct.AutonomousModeOverException;
 import ccre.log.Logger;
 
@@ -34,7 +31,7 @@ public class AutonomousModeHighGoal extends AutonomousBase {
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
-        webcam.setAddress("10.15.40.12");
+        webcam.setAddress("10.15.40.13");
         try {
             turnForTime(0.3f, -0.7f);
             synchronized (swapLock) {
@@ -43,21 +40,47 @@ public class AutonomousModeHighGoal extends AutonomousBase {
                     swapLock.wait();
                 }
             }
+            
+            FloatInput targetRed = ZukoAzula.mainTuning.getFloat("Vision Target Red", 205);
+            FloatInput targetBlue = ZukoAzula.mainTuning.getFloat("Vision Target Blue", 20);
+            FloatInput targetGreen = ZukoAzula.mainTuning.getFloat("Vision Target Green", 10);
+            FloatInput thresholdRed = ZukoAzula.mainTuning.getFloat("Vision Threshold Red", 70);
+            FloatInput thresholdGreen = ZukoAzula.mainTuning.getFloat("Vision Threshold Green", 70);
+            FloatInput thresholdBlue = ZukoAzula.mainTuning.getFloat("Vision Threshold Blue", 20);
+            FloatInput minGoalPixCount = ZukoAzula.mainTuning.getFloat("Vision Min Goal Pixel Count", 50);
+            FloatInput similarityThreshold = ZukoAzula.mainTuning.getFloat("Vision Similarity Threshold", 0.05f);
+            FloatInput aspectRatio = ZukoAzula.mainTuning.getFloat("Vision Goal Aspect Ratio", 3.2f);
+            FloatInput aspectRatioThreshold = ZukoAzula.mainTuning.getFloat("Vision Goal Aspect Ratio Threshold", 2.0f);
+            FloatInput pixelsPerDegree = ZukoAzula.mainTuning.getFloat("Vision Pixels Per Degree", 1480.0f*(float)Math.PI/180.0f);
+            FloatInput prelimAligningAngle = ZukoAzula.mainTuning.getFloat("Vision Prelim Aligning Angle", 0.0f);
+            FloatInput prelimAligningEpsilon = ZukoAzula.mainTuning.getFloat("Vision Prelim Aligning Epsilon", 10.0f);
+            FloatInput movementTime = ZukoAzula.mainTuning.getFloat("Vision Movement Time", 0.15f);
+            FloatInput movementSpeed = ZukoAzula.mainTuning.getFloat("Vision Movement Speed", 0.15f);
+            FloatInput movementAligningEpsilon = ZukoAzula.mainTuning.getFloat("Vision Movement Aligning Epsilon", 3.0f);
+            FloatInput scanTickTime = ZukoAzula.mainTuning.getFloat("Vision Scan Tick Time", 0.15f);
+            FloatInput scanTickSpeed = ZukoAzula.mainTuning.getFloat("Vision Scan Tick Speed", 0.3f);
+            FloatInput cameraSettleTime = ZukoAzula.mainTuning.getFloat("Vision Camera Settle Time", 0.1f);
+            FloatInput minuteRotationSpeed = ZukoAzula.mainTuning.getFloat("Vision Minute Rotation Speed", 0.4f);
+            FloatInput minuteRotationTime = ZukoAzula.mainTuning.getFloat("Vision Minute Rotation Time", 0.1f);
+            FloatInput minimumPitch = ZukoAzula.mainTuning.getFloat("Vision Minimum Pitch", 30.0f);
+            FloatInput postMovementTargetAngle = ZukoAzula.mainTuning.getFloat("Vision Post Movement Target Angle", -10.0f);
+            FloatInput postMovementTargetEpsilon = ZukoAzula.mainTuning.getFloat("Vision Post Movement Target Epsilon", 3.0f);
+            
             while (true) {
                 waitForTime(1);
                 BufferedImage currentImage = swap;
                 processor = processor.useOrRealloc(currentImage.getWidth(), currentImage.getHeight());
                 List<Goal> goals = processor.findGoals(currentImage,
-                        205, // red target
-                        20, // green target
-                        10, // blue target
-                        70, // red threshold
-                        70, // green threshold
-                        20, // blue threshold
-                        50, // min goal pixel count
-                        200.0f, // similarity threshold
-                        3.2f, // goal aspect ratio
-                        20.0f); // goal aspect ratio threshold
+                        (int) targetRed.get(), // red target
+                        (int) targetBlue.get(), // green target
+                        (int) targetGreen.get(), // blue target
+                        (int) thresholdRed.get(), // red threshold
+                        (int) thresholdGreen.get(), // green threshold
+                        (int) thresholdBlue.get(), // blue threshold
+                        (int) minGoalPixCount.get(), // min goal pixel count
+                        (int) similarityThreshold.get(), // similarity threshold
+                        (int) aspectRatio.get(), // goal aspect ratio
+                        (int) aspectRatioThreshold.get()); // goal aspect ratio threshold
 
                 Goal target = null;
                 for (Goal g : goals) {
@@ -65,33 +88,36 @@ public class AutonomousModeHighGoal extends AutonomousBase {
                         target = g;
                     }
                 }
-
+                
                 if (target != null) {
-                    float bottomAverageY = (target.ll.y + target.lr.y) / 2.0f;
-                    float bottomAverageX = (target.ll.x + target.lr.x) / 2.0f;
-                    float bottomDistance = (float) Math.sqrt((bottomAverageX - 245.0f) * (bottomAverageX - 245.0f) * 0.8f + (bottomAverageY - 0.0f) * (bottomAverageY - 0.0f));
-                    float distance = 1.1f * (0.000103f * bottomDistance * bottomDistance - 0.012f * bottomDistance + 0.4211f);
-                    float angle = (bottomAverageX - 245.0f) / (distance + 3.0f);
-
-                    if (Math.abs(angle + 2.0f) < 3.0f) {
-                        if (distance > 4.0f) {
-                            driveForTime(0.3f, 0.3f);
-                        } else if (distance > 1.0f) {
-                            driveForTime(0.2f, 0.3f);
-                            waitForTime(100);
+                    float bottomX = (target.ll.x + target.lr.x) / 2.0f;
+                    float bottomY = (target.ll.y + target.lr.y) / 2.0f;
+                    float ppd = pixelsPerDegree.get();
+                    float yaw = (bottomX-currentImage.getWidth()) / ppd;
+                    float pitch = (bottomY-currentImage.getHeight()) / ppd;
+                    if (pitch < minimumPitch.get()) {
+                        if (Math.abs(yaw - prelimAligningAngle.get()) < prelimAligningEpsilon.get()) {
+                            turnAngle(yaw - prelimAligningAngle.get(), true);
+                            waitForTime((long)(cameraSettleTime.get()*1000.0f));
+                        } else if (Math.abs(yaw - prelimAligningAngle.get()) < movementAligningEpsilon.get()){
+                            turnForTime(minuteRotationTime.get(), Math.signum(yaw - prelimAligningAngle.get())*minuteRotationSpeed.get());
+                            waitForTime((long)(cameraSettleTime.get()*1000.0f));
                         } else {
-                            // turnForTime(0.10f, 0.5f);
-                            driveForTime(0.3f, 0.5f);
-                            fire(1.5f);
-                            break;
+                            driveForTime(movementTime.get(), movementSpeed.get());
+                            waitForTime((long)(cameraSettleTime.get()*1000.0f));
                         }
                     } else {
-                        turnForTime(0.15f, Math.signum(angle) * 0.5f);
-                        waitForTime(100);
+                        // TODO: add spinup?
+                        if (Math.abs(yaw - postMovementTargetAngle.get()) < postMovementTargetEpsilon.get()){
+                            turnForTime(minuteRotationTime.get(), Math.signum(yaw - postMovementTargetAngle.get())*minuteRotationSpeed.get());
+                            waitForTime((long)(cameraSettleTime.get()*1000.0f));
+                        } else {
+                            fire(2.5f);
+                        }
                     }
                 } else {
-                    turnForTime(0.2f, 0.5f);
-                    waitForTime(100);
+                    turnForTime(scanTickTime.get(), scanTickSpeed.get());
+                    waitForTime((long)(cameraSettleTime.get()*1000.0f));
                 }
             }
         } finally {
