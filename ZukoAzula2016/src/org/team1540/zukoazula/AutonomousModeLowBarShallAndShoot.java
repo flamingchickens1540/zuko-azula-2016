@@ -15,7 +15,7 @@ public class AutonomousModeLowBarShallAndShoot extends AutonomousBaseHighGoal {
     private FloatInput angle;
 
     public AutonomousModeLowBarShallAndShoot() {
-        super("Drive Under Low Bar and Shoot");
+        super("Drive Under Low Bar, Stall, and Shoot");
     }
 
     @Override

@@ -22,6 +22,7 @@ public class Autonomous {
         mainModule.publishRConfControls();
         // Will need to be retuned after we fix the encoders
         mainModule.addMode(new AutonomousModeLowBar());
+        mainModule.addMode(new AutonomousModeLowBarGoal());
         mainModule.addMode(new AutonomousModeLowBarShallAndShoot());
         mainModule.addMode(new AutonomousModeRockWall());
         mainModule.addMode(new AutonomousModeRockWallShoot());
