@@ -4,6 +4,7 @@ import ccre.behaviors.ArbitratedFloat;
 import ccre.behaviors.Behavior;
 import ccre.behaviors.BehaviorArbitrator;
 import ccre.channel.BooleanCell;
+import ccre.channel.BooleanInput;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
@@ -28,8 +29,11 @@ public class DriveCode {
 
     public static final FloatInput ticksPerFoot = ZukoAzula.mainTuning.getFloat("Ticks Per Foot", 100);
 
-    private static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
-    private static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
+    private static final FloatInput leftCurrent = leftCANs[0].modFeedback().getOutputCurrent();
+    private static final FloatInput rightCurrent = rightCANs[0].modFeedback().getOutputCurrent();
+    private static final FloatInput stallingThreshold = ZukoAzula.mainTuning.getFloat("Drive Stalling Threshold", 4);
+    public static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
+    public static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
     private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
     private static final FloatInput ticksPerSecond = velocityOf(driveEncodersAverage, ZukoAzula.mainTuning.getFloat("Drive Velocity Update Threshold", .25f));
     private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ticksPerFoot);
@@ -50,6 +54,31 @@ public class DriveCode {
     private static final FloatInput coastMultiplier = ZukoAzula.mainTuning.getFloat("Drive Coast Multiplier", 5237.1f);
     private static final FloatInput coastOffset = ZukoAzula.mainTuning.getFloat("Drive Coast Offset", 986.14f);
 
+    public static final FloatInput maximumCurrent;
+    static {
+        FloatInput[] of = new FloatInput[rightCANs.length + leftCANs.length];
+        for (int i = 0; i < rightCANs.length; i++) {
+            of[i] = rightCANs[i].modFeedback().getOutputCurrent();
+        }
+        for (int i = 0; i < leftCANs.length; i++) {
+            of[rightCANs.length + i] = leftCANs[i].modFeedback().getOutputCurrent();
+        }
+        maximumCurrent = maxOf(of);
+    }
+
+    private static FloatInput maxOf(FloatInput[] inputs) {
+        return new DerivedFloatInput(inputs) {
+            @Override
+            protected float apply() {
+                float f = 0;
+                for (FloatInput i : inputs) {
+                    f = Math.max(f, i.get());
+                }
+                return f;
+            }
+        };
+    }
+
     public static void setup() throws ExtendedMotorFailureException {
         leftInput.attach(autonomous, autonomousLeft);
         rightInput.attach(autonomous, autonomousRight);
@@ -60,8 +89,8 @@ public class DriveCode {
         leftInput.attach(challenge, FloatInput.zero);
         rightInput.attach(challenge, FloatInput.zero);
 
-        FloatOutput leftMotors = PowerManager.managePower(2, FloatOutput.combine(simpleAll(leftCANs, FRC.MOTOR_FORWARD)));
-        FloatOutput rightMotors = PowerManager.managePower(2, FloatOutput.combine(simpleAll(rightCANs, FRC.MOTOR_REVERSE)));
+        FloatOutput leftMotors = PowerManager.managePower(2, FloatOutput.combine(SelfTest.wrapDrive(leftCANs, FRC.MOTOR_FORWARD, false)));
+        FloatOutput rightMotors = PowerManager.managePower(2, FloatOutput.combine(SelfTest.wrapDrive(rightCANs, FRC.MOTOR_REVERSE, true)));
 
         leftInput.send(leftMotors.addRamping(0.1f, FRC.constantPeriodic));
         rightInput.send(rightMotors.addRamping(0.1f, FRC.constantPeriodic));
@@ -78,6 +107,8 @@ public class DriveCode {
 
         Cluck.publish("Drive Left Raw", driveLeftAxis);
         Cluck.publish("Drive Right Raw", driveRightAxis);
+        Cluck.publish("Drive Left Current", leftCurrent);
+        Cluck.publish("Drive Right Current", rightCurrent);
         Cluck.publish("Drive Forwards Raw", driveRightTrigger);
         Cluck.publish("Drive Backwards Raw", driveLeftTrigger);
         Cluck.publish("Drive Left Motors", leftInput);
@@ -109,6 +140,10 @@ public class DriveCode {
 
     public static FloatInput getEncoder() {
         return driveEncodersAverage;
+    }
+
+    public static BooleanInput isStalling() {
+        return leftCurrent.atLeast(stallingThreshold).and(rightCurrent.atLeast(stallingThreshold));
     }
 
     public static float getCoastDistance(float speed) {
