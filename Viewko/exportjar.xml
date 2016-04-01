@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project ZukoAzula2016">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <!--define folder properties-->
+    <property name="dir.buildfile" value="."/>
+    <property name="dir.workspace" value="/home/skeggsc/workspace-redone"/>
+    <property name="dir.jarfile" value="${dir.buildfile}"/>
+    <target name="create_run_jar">
+        <jar destfile="${dir.jarfile}/CalibrationTool.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="org.team1540.vision.CalibrationTool"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${dir.jarfile}/bin"/>
+            <fileset dir="/home/skeggsc/git/common-chicken-runtime-engine/roboRIO/bin"/>
+            <fileset dir="/home/skeggsc/git/common-chicken-runtime-engine/CommonChickenRuntimeEngine/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/usr/lib/eclipse/plugins/org.junit_4.12.0.v201504281640/junit.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/usr/lib/eclipse/plugins/org.hamcrest.core_1.3.0.v201303031735.jar"/>
+            <fileset dir="/home/skeggsc/git/common-chicken-runtime-engine/DeploymentEngine/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/skeggsc/git/common-chicken-runtime-engine/DeploymentEngine/libs/sshj-0.13.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/skeggsc/git/common-chicken-runtime-engine/DeploymentEngine/libs/slf4j-api-1.7.12.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/skeggsc/git/common-chicken-runtime-engine/DeploymentEngine/libs/slf4j-simple-1.7.12.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/skeggsc/git/common-chicken-runtime-engine/DeploymentEngine/libs/bcprov-jdk15on-152.jar"/>
+            <fileset dir="/home/skeggsc/git/common-chicken-runtime-engine/Emulator/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/home/skeggsc/git/common-chicken-runtime-engine/Emulator/lib/jinput.jar"/>
+        </jar>
+    </target>
+</project>

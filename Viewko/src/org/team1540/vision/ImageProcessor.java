@@ -65,6 +65,11 @@ public class ImageProcessor {
         
         // partition the image into a list of separate shapes
         List<Shape> shapes = partitionShapes(filtered, width);
+        System.out.println("Shapes: " + shapes.size());
+        System.out.println("Shapes: " + shapes);
+        if (shapes.size() != 0) {
+            System.out.println("Shapes: " + shapes.get(0).getCount());
+        }
         shapes.removeIf(x -> x.getCount() < minGoalPixelCount);
         for (Shape shape : shapes) {
             List<Point> convexHull = fastConvexHull(shapeToPoints(shape));
@@ -96,10 +101,11 @@ public class ImageProcessor {
             // generate a model goal and compare it to what the camera sees
             boolean[] model = generateModelGoal(width, height, topLeft, bottomLeft, topRight, bottomRight);
             float similarity = compareImages(shape.getShape(), model);
-            if (similarity > 1.0 - similarityThreshold 
+            /*if (similarity > 1.0 - similarityThreshold 
                     && (Math.abs((Math.abs(topLeft.distance(topRight)/topLeft.distance(bottomLeft)) +
                             Math.abs(bottomLeft.distance(bottomRight)/topRight.distance(bottomRight))/2.0f) - goalAspectRatio)
-                            < goalAspectRatioThreshold)) {
+                            < goalAspectRatioThreshold)) {*/
+            {
                 goals.add(new Goal(topLeft, topRight, bottomRight, bottomLeft, shape));
             }
         }

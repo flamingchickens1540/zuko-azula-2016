@@ -22,6 +22,7 @@ public class Shooter {
     private static final EventCell autonomousEject = new EventCell();
     private static final EventCell autonomousStop = new EventCell();
     public static BooleanInput upToSpeed;
+    public static BooleanInput shouldLowerArm;
 
     private static EventOutput split(BooleanInput cond, EventOutput t, EventOutput f) {
         return () -> {
@@ -53,6 +54,15 @@ public class Shooter {
                 FloatInput.zero, // cocking
                 flywheelHighSpeed, // spinup
                 flywheelHighSpeed); // firing
+        
+        shouldLowerArm = shooterStates.selectByState(
+                BooleanInput.alwaysFalse,
+                BooleanInput.alwaysFalse,
+                BooleanInput.alwaysFalse,
+                BooleanInput.alwaysFalse,
+                BooleanInput.alwaysTrue,
+                BooleanInput.alwaysTrue,
+                BooleanInput.alwaysTrue);
 
         FloatInput flywheelRampingConstant = shooterStates.selectByState(
                 FloatInput.always(20.0f), // passive

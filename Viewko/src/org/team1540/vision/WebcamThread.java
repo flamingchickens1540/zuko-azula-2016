@@ -35,7 +35,7 @@ public class WebcamThread {
     private volatile boolean terminate = false;
     private final Consumer<BufferedImage> output;
     private final ReporterThread thread;
-    private Consumer<String> error;
+    private final Consumer<String> error;
 
     public WebcamThread(Consumer<BufferedImage> output, Consumer<String> error) {
         this.output = output;

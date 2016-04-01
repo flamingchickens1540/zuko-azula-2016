@@ -30,6 +30,7 @@ public class ZukoAzula implements FRCApplication {
         IntakeArm.setup();
         ChallengeBrake.setup();
         HeadingSensor.setup();
+        VisionConstants.setup();
 
         Cluck.publishRConf("Diagnostics", new RConfable() {
             @Override
