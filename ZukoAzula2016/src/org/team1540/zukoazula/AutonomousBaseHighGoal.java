@@ -95,6 +95,7 @@ public abstract class AutonomousBaseHighGoal extends AutonomousBase {
                         } else {
                             Logger.fine("Fire");
                             fire(2.5f);
+                            break;
                         }
                     }
                 } else {
