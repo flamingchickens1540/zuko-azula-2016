@@ -38,7 +38,7 @@ public class Autonomous {
         Cluck.publish("(TEST) SPIKE CUR", DriveCode.maximumCurrent);
         ExpirationTimer spikeChecker = new ExpirationTimer();
         DriveCode.maximumCurrent.atLeast(spikeLevel).send(spikeChecker.getRunningControl());
-//        spikeChecker.schedule(500, mainModule::abortMode);
+        spikeChecker.schedule(500, mainModule::abortMode);
         FRC.registerAutonomous(mainModule);
     }
 }
