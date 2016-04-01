@@ -14,13 +14,13 @@ public class ImageProcessor {
     private int[] preallocatedImage;
     private boolean[] preallocatedProcessedImage;
     private boolean[] preallocatedAlreadyMarked;
-    
+
     public ImageProcessor(int imgWidth, int imgHeight) {
-        preallocatedImage = new int[imgWidth*imgHeight*3];
-        preallocatedProcessedImage = new boolean[imgWidth*imgHeight];
-        preallocatedAlreadyMarked = new boolean[imgWidth*imgHeight];
+        preallocatedImage = new int[imgWidth * imgHeight * 3];
+        preallocatedProcessedImage = new boolean[imgWidth * imgHeight];
+        preallocatedAlreadyMarked = new boolean[imgWidth * imgHeight];
     }
-    
+
     public ImageProcessor useOrRealloc(int imgWidth, int imgHeight) {
         if (imgWidth * imgHeight == preallocatedAlreadyMarked.length) {
             return this; // can be reused
@@ -29,100 +29,87 @@ public class ImageProcessor {
         }
     }
 
-    public List<Goal> findGoals(BufferedImage image, 
-            int redTarget,
-            int greenTarget,
-            int blueTarget,
-            int redThreshold, 
-            int greenThreshold, 
-            int blueThreshold,
-            int minGoalPixelCount,
-            float similarityThreshold,
-            float goalAspectRatio,
-            float goalAspectRatioThreshold) {
+    public List<Goal> findGoals(BufferedImage image, int redTarget, int greenTarget, int blueTarget, int redThreshold, int greenThreshold, int blueThreshold, int minGoalPixelCount, float similarityThreshold, float goalAspectRatio, float goalAspectRatioThreshold) {
         Raster raster = image.getRaster();
         int width = raster.getWidth();
         int height = raster.getHeight();
-        int[] pixels = raster.getPixels(0, 0, width, height, preallocatedImage);
+        int[] pixels = raster.getPixels(0, 0, width, height, preallocatedImage); 
         boolean[] filtered = preallocatedProcessedImage;
-        
-        for (int i=0; i<width*height; ++i) {
+
+        for (int i = 0; i < width * height; ++i) {
             // if the given pixel falls within the color threshold
-            if (Math.abs(pixels[i*3+0] - redTarget) < redThreshold &&
-                    Math.abs(pixels[i*3+1] - greenTarget) < greenThreshold &&
-                    Math.abs(pixels[i*3+2] - blueTarget) < blueThreshold) {
+            if (Math.abs(pixels[i * 3 + 0] - redTarget) < redThreshold && Math.abs(pixels[i * 3 + 1] - greenTarget) < greenThreshold && Math.abs(pixels[i * 3 + 2] - blueTarget) < blueThreshold) {
                 filtered[i] = true;
             } else {
                 // this is needed because image is not reallocated and
                 // filled with the value 'false' each step
                 filtered[i] = false;
             }
-            
+
 //            System.out.println(Math.abs(pixels[i*3+0]) + " " + Math.abs(pixels[i*3+1]) + " " + Math.abs(pixels[i*3+0]));
         }
-        
+
         List<Goal> goals = new ArrayList<>();
-        
+
         // partition the image into a list of separate shapes
         List<Shape> shapes = partitionShapes(filtered, width);
-        System.out.println("Shapes: " + shapes.size());
-        System.out.println("Shapes: " + shapes);
-        if (shapes.size() != 0) {
-            System.out.println("Shapes: " + shapes.get(0).getCount());
-        }
+        /*
+         * System.out.println("Shapes: " + shapes.size()); System.out.println(
+         * "Shapes: " + shapes); if (shapes.size() != 0) { System.out.println(
+         * "Shapes: " + shapes.get(0).getCount()); }
+         */
         shapes.removeIf(x -> x.getCount() < minGoalPixelCount);
         for (Shape shape : shapes) {
             List<Point> convexHull = fastConvexHull(shapeToPoints(shape));
-            
+
             // find best fit (for a goal)
-            Point topRight = convexHull.get(0); // a shape must have at least one point
+            Point topRight = convexHull.get(0); // a shape must have at least
+                                                // one point
             Point topLeft = convexHull.get(0);
             Point bottomRight = convexHull.get(0);
             Point bottomLeft = convexHull.get(0);
-            
+
             for (Point p : convexHull) {
                 if (p.x + p.y < topLeft.x + topLeft.y) {
                     topLeft = p;
                 }
-                
+
                 if (p.x - p.y < bottomLeft.x - bottomLeft.y) {
                     bottomLeft = p;
                 }
-                
+
                 if (p.x + p.y > bottomRight.x + bottomRight.y) {
                     bottomRight = p;
                 }
-                
+
                 if (p.x - p.y > topRight.x - topRight.y) {
                     topRight = p;
                 }
             }
-            
+
             // generate a model goal and compare it to what the camera sees
             boolean[] model = generateModelGoal(width, height, topLeft, bottomLeft, topRight, bottomRight);
             float similarity = compareImages(shape.getShape(), model);
-            /*if (similarity > 1.0 - similarityThreshold 
-                    && (Math.abs((Math.abs(topLeft.distance(topRight)/topLeft.distance(bottomLeft)) +
-                            Math.abs(bottomLeft.distance(bottomRight)/topRight.distance(bottomRight))/2.0f) - goalAspectRatio)
-                            < goalAspectRatioThreshold)) {*/
+
+            //if (similarity > 1.0 - similarityThreshold && (Math.abs((Math.abs(topLeft.distance(topRight) / topLeft.distance(bottomLeft)) + Math.abs(bottomLeft.distance(bottomRight) / topRight.distance(bottomRight)) / 2.0f) - goalAspectRatio) < goalAspectRatioThreshold)) {
             {
                 goals.add(new Goal(topLeft, topRight, bottomRight, bottomLeft, shape));
             }
         }
-        
+
         return goals;
     }
-    
+
     private List<Point> shapeToPoints(Shape shape) {
         List<Point> points = new ArrayList<>(shape.getCount());
-        for (int i=0; i<shape.getWidth()*shape.getHeight(); ++i) {
+        for (int i = 0; i < shape.getWidth() * shape.getHeight(); ++i) {
             if (shape.get(i)) {
-                points.add(new Point(i%shape.getWidth(), i/shape.getWidth()));
+                points.add(new Point(i % shape.getWidth(), i / shape.getWidth()));
             }
         }
         return points;
     }
-    
+
     private float compareImages(boolean[] a, boolean[] b) {
         // returns 1.0 for perfect match and 0.0 for no match at all
         if (a.length != b.length)
@@ -137,7 +124,7 @@ public class ImageProcessor {
 
         return (float) match / (float) total;
     }
-    
+
     private boolean[] generateModelGoal(int width, int height, Point tl, Point bl, Point tr, Point br) {
         boolean[] model = new boolean[width * height];
 
@@ -219,45 +206,46 @@ public class ImageProcessor {
         boolean[] alreadyMarked = preallocatedAlreadyMarked;
         Arrays.fill(alreadyMarked, false);
         List<Shape> objects = new ArrayList<>();
-        
-        for (int i=0; i<image.length; ++i) {
+
+        for (int i = 0; i < image.length; ++i) {
             if (!alreadyMarked[i]) {
-                Shape shape = floodfill(image, width, i%width, i/width);
+                Shape shape = floodfill(image, width, i % width, i / width);
                 if (shape != null) {
                     objects.add(shape);
-                    for (int j=0; j<alreadyMarked.length; ++j) alreadyMarked[j] |= shape.get(j);
+                    for (int j = 0; j < alreadyMarked.length; ++j)
+                        alreadyMarked[j] |= shape.get(j);
                 }
             }
         }
-        
+
         return objects;
     }
-    
+
     public Shape floodfill(boolean[] image, int width, int x, int y) {
-        if (!image[x+y*width]) return null;
-        
+        if (!image[x + y * width])
+            return null;
+
         Queue<Integer> toCheck = new LinkedList<>();
-        Shape shape = new Shape(width, image.length/width, null);
-        
-        toCheck.add(x+y*width);
+        Shape shape = new Shape(width, image.length / width);
+
+        toCheck.add(x + y * width);
         while (!toCheck.isEmpty()) {
             int i = toCheck.remove();
             if (i >= 0 && i < image.length && image[i] && !shape.get(i)) {
                 shape.mark(i);
-                toCheck.add(i+1);
-                toCheck.add(i-1);
-                toCheck.add(i+width);
-                toCheck.add(i-width);
+                toCheck.add(i + 1);
+                toCheck.add(i - 1);
+                toCheck.add(i + width);
+                toCheck.add(i - width);
             }
         }
-        
+
         return shape;
     }
-    
-    public List<Point> fastConvexHull(List<Point> points) {        
+
+    public List<Point> fastConvexHull(List<Point> points) {
         ArrayList<Point> xSorted = new ArrayList<>(points);
-        Collections.sort(xSorted, 
-                (o1, o2) -> (o1.x - o2.x));
+        Collections.sort(xSorted, (o1, o2) -> (o1.x - o2.x));
 
         int n = xSorted.size();
 

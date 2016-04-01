@@ -35,7 +35,5 @@ public class VisionConstantsSub {
 
     public static void setup() throws InterruptedException {
         Cluck.getNode().notifyNetworkModified();
-        Thread.sleep(500);
-        System.out.println(targetRed.get());
     }
 }

@@ -2,6 +2,7 @@ package org.team1540.zukoazula;
 
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Objects;
 
 import org.team1540.vision.Goal;
 import org.team1540.vision.ImageProcessor;
@@ -14,13 +15,17 @@ public abstract class AutonomousBaseHighGoal extends AutonomousBase {
     private ImageProcessor processor = new ImageProcessor(100, 100);
     private final Object swapLock = new Object();
     private volatile BufferedImage swap;
+    private String lastError;
     private final WebcamThread webcam = new WebcamThread((image) -> {
         synchronized (swapLock) {
             swap = image;
             swapLock.notifyAll();
         }
     }, (error) -> {
-        Logger.finer("Error state of autonomous webcam: " + error);
+        if (!Objects.equals(error, lastError)) {
+            lastError = error;
+            Logger.finer("Error state of autonomous webcam: " + error);
+        }
     });
     
     public AutonomousBaseHighGoal(String modeName) {
@@ -67,12 +72,12 @@ public abstract class AutonomousBaseHighGoal extends AutonomousBase {
                     float ppd = VisionConstants.pixelsPerDegree.get();
                     float yaw = (bottomX-currentImage.getWidth()) / ppd;
                     float pitch = (bottomY-currentImage.getHeight()) / ppd;
-                    if (pitch < VisionConstants.minimumPitch.get()) {
-                        if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) < VisionConstants.prelimAligningEpsilon.get()) {
+                    if (pitch > VisionConstants.minimumPitch.get()) {
+                        if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) >= VisionConstants.prelimAligningEpsilon.get()) {
                             Logger.fine("Turn angle");
                             turnAngle(yaw - VisionConstants.prelimAligningAngle.get(), true);
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
-                        } else if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) < VisionConstants.movementAligningEpsilon.get()){
+                        } else if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) >= VisionConstants.movementAligningEpsilon.get()){
                             Logger.fine("Turn time");
                             turnForTime(VisionConstants.minuteRotationTime.get(), Math.signum(yaw - VisionConstants.prelimAligningAngle.get())*VisionConstants.minuteRotationSpeed.get());
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
@@ -83,7 +88,7 @@ public abstract class AutonomousBaseHighGoal extends AutonomousBase {
                         }
                     } else {
                         // TODO: add spinup?
-                        if (Math.abs(yaw - VisionConstants.postMovementTargetAngle.get()) < VisionConstants.postMovementTargetEpsilon.get()){
+                        if (Math.abs(yaw - VisionConstants.postMovementTargetAngle.get()) >= VisionConstants.postMovementTargetEpsilon.get()){
                             Logger.fine("Turn time 2");
                             turnForTime(VisionConstants.minuteRotationTime.get(), Math.signum(yaw - VisionConstants.postMovementTargetAngle.get())*VisionConstants.minuteRotationSpeed.get());
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
