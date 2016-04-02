@@ -21,7 +21,11 @@ public class AutonomousModeLowBarGoal extends AutonomousBaseHighGoal {
         setIntakeArm(-.5f);
         driveForTime(time.get(), drivingSpeed.get());
         setIntakeArm(0);
-        turnAngle(startAngle - HeadingSensor.absoluteYaw.get(), true);
+        setIntakeArm(0.5f);
+        waitForTime(200);
+        arcAngle(startAngle - HeadingSensor.absoluteYaw.get() + 30, true);
+        //turnForTime(0.3f, 1f);
+        setIntakeArm(0);
         runVisionAutonomous();
     }
 }

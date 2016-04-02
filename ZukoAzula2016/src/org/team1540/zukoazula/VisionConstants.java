@@ -27,10 +27,14 @@ public class VisionConstants {
     public static final FloatInput scanTickSpeed = ZukoAzula.mainTuning.getFloat("Vision Scan Tick Speed", 0.3f);
     public static final FloatInput cameraSettleTime = ZukoAzula.mainTuning.getFloat("Vision Camera Settle Time", 0.1f);
     public static final FloatInput minuteRotationSpeed = ZukoAzula.mainTuning.getFloat("Vision Minute Rotation Speed", 0.4f);
+    public static final FloatInput postMovementRotationTime = ZukoAzula.mainTuning.getFloat("Vision Post Movement Rotation Time", 0.1f);
     public static final FloatInput minuteRotationTime = ZukoAzula.mainTuning.getFloat("Vision Minute Rotation Time", 0.1f);
     public static final FloatInput minimumPitch = ZukoAzula.mainTuning.getFloat("Vision Minimum Pitch", 30.0f);
     public static final FloatInput postMovementTargetAngle = ZukoAzula.mainTuning.getFloat("Vision Post Movement Target Angle", -10.0f);
     public static final FloatInput postMovementTargetEpsilon = ZukoAzula.mainTuning.getFloat("Vision Post Movement Target Epsilon", 3.0f);
+    public static final FloatInput fireDriveSpeed = ZukoAzula.mainTuning.getFloat("Vision Fire Drive Speed", 0.5f);
+    public static final FloatInput fireDriveSeconds = ZukoAzula.mainTuning.getFloat("Vision Fire Drive Seconds", 0.5f);
+    public static final FloatInput fireWaitSeconds = ZukoAzula.mainTuning.getFloat("Vision Fire Wait Seconds", 0.4f);
 
     public static void setup() {
         // do nothing

@@ -85,13 +85,13 @@ public class Shooter {
         intakeButton.onPress(split(shooterStates.getIsState("intaking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("intaking")));
         ejectButton.onPress(split(shooterStates.getIsState("ejecting"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("ejecting")));
         cockAndSpinButton.onPress(split(shooterStates.getIsState("cocking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("cocking")));
-        upToSpeed = flywheelTalon.speed.atLeast(flywheelTargetVelocity.minus(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed Rel", 100.0f)));
+        upToSpeed = flywheelTalon.speed.atLeast(flywheelHighSpeed.minus(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed Rel", 100.0f)));
         fireButton.and(upToSpeed).onPress(split(shooterStates.getIsState("firing"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("firing")));
 
         autonomousStop.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("passive"));
         autonomousIntake.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("intaking"));
         autonomousEject.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("ejecting"));
-        autonomousWarmup.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("cocking"));
+        autonomousWarmup.and(FRC.inAutonomousMode()).andNot(shooterStates.getIsState("spinup")).send(shooterStates.getStateSetEvent("cocking"));
         autonomousFire.and(FRC.inAutonomousMode()).and(upToSpeed).send(shooterStates.getStateSetEvent("firing"));
 
         PauseTimer buzzRight = new PauseTimer(ZukoAzula.mainTuning.getFloat("Joystick Load Buzz Duration", 0.5f));
@@ -123,6 +123,7 @@ public class Shooter {
 
         Cluck.publish("Shooter Flywheel Target Vel", flywheelTargetVelocity);
         Cluck.publish("Shooter State Intaking", shooterStates.getIsState("intaking"));
+        Cluck.publish("Shooter Up To Speed", upToSpeed);
     }
 
     private static TalonExtendedMotor makeLinkedTalons() throws ExtendedMotorFailureException {

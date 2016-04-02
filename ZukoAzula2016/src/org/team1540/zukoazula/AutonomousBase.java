@@ -28,6 +28,8 @@ public abstract class AutonomousBase extends InstinctModeModule {
     private static final FloatInput rotateMultiplier = Autonomous.autoTuning.getFloat("Autonomous Rotate Multiplier", 1);
     private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 20);
     private static final FloatInput rotateSpeed = Autonomous.autoTuning.getFloat("Autonomous Rotate Speed", .5f);
+    private static final FloatInput forwardArcSpeed = Autonomous.autoTuning.getFloat("Autonomous Arc Forward Speed", 0.5f);
+    private static final FloatInput reverseArcSpeed = Autonomous.autoTuning.getFloat("Autonomous Arc Reverse Speed", 0f);
     private static final FloatInput portcullisWiggleRoom = Autonomous.autoTuning.getFloat("Autonomous Portcullis Wiggle Room", .05f);
     private static final FloatInput turningP = Autonomous.autoTuning.getFloat("Autonomous PID P", .1f);
     private static final FloatInput turningI = Autonomous.autoTuning.getFloat("Autonomous PID I", 0);
@@ -81,6 +83,38 @@ public abstract class AutonomousBase extends InstinctModeModule {
         allMotors.set(0);
     }
 
+    protected void arcForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
+        if (speed > 0) {
+            DriveCode.getLeftOutput().set(speed);
+            DriveCode.getRightOutput().set(0);
+        } else {
+            DriveCode.getLeftOutput().set(0);
+            DriveCode.getRightOutput().set(-speed);
+        }
+        waitSeconds(seconds);
+        allMotors.set(0);
+    }
+
+    protected void arcAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
+        float adjustedDegrees = Math.abs(degrees) / rotateMultiplier.get() - rotateOffset.get();
+        if (adjustAngle && adjustedDegrees > 0) {
+            adjustedDegrees *= Math.signum(degrees);
+        } else {
+            adjustedDegrees = degrees;
+        }
+        float start = HeadingSensor.absoluteYaw.get();
+        if (adjustedDegrees > 0) {
+            DriveCode.getLeftOutput().set(forwardArcSpeed.get());
+            DriveCode.getRightOutput().set(-reverseArcSpeed.get());
+            waitUntilAtLeast(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+        } else {
+            DriveCode.getLeftOutput().set(reverseArcSpeed.get());
+            DriveCode.getRightOutput().set(-forwardArcSpeed.get());
+            waitUntilAtMost(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+        }
+        allMotors.set(0);
+    }
+
     protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitSeconds(seconds);
@@ -117,6 +151,10 @@ public abstract class AutonomousBase extends InstinctModeModule {
     }
 
     protected void startWarmup() throws AutonomousModeOverException, InterruptedException {
+        Shooter.warmupEvent();
+    }
+
+    protected void spinup() throws AutonomousModeOverException, InterruptedException {
         Shooter.warmupEvent();
     }
 

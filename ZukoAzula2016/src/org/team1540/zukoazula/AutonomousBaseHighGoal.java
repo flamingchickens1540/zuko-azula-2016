@@ -73,16 +73,17 @@ public abstract class AutonomousBaseHighGoal extends AutonomousBase {
                     float yaw = (bottomX-currentImage.getWidth()) / ppd;
                     float pitch = (bottomY-currentImage.getHeight()) / ppd;
                     if (pitch > VisionConstants.minimumPitch.get()) {
-                        if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) >= VisionConstants.prelimAligningEpsilon.get()) {
+                        /*if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) >= VisionConstants.prelimAligningEpsilon.get()) {
                             Logger.fine("Turn angle");
                             turnAngle(yaw - VisionConstants.prelimAligningAngle.get(), true);
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
-                        } else if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) >= VisionConstants.movementAligningEpsilon.get()){
+                        } else */if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) >= VisionConstants.movementAligningEpsilon.get()){
                             Logger.fine("Turn time");
                             turnForTime(VisionConstants.minuteRotationTime.get(), Math.signum(yaw - VisionConstants.prelimAligningAngle.get())*VisionConstants.minuteRotationSpeed.get());
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
                         } else {
                             Logger.fine("Drive time");
+                            spinup();
                             driveForTime(VisionConstants.movementTime.get(), VisionConstants.movementSpeed.get());
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
                         }
@@ -90,10 +91,13 @@ public abstract class AutonomousBaseHighGoal extends AutonomousBase {
                         // TODO: add spinup?
                         if (Math.abs(yaw - VisionConstants.postMovementTargetAngle.get()) >= VisionConstants.postMovementTargetEpsilon.get()){
                             Logger.fine("Turn time 2");
-                            turnForTime(VisionConstants.minuteRotationTime.get(), Math.signum(yaw - VisionConstants.postMovementTargetAngle.get())*VisionConstants.minuteRotationSpeed.get());
+                            turnForTime(VisionConstants.postMovementRotationTime.get(), Math.signum(yaw - VisionConstants.postMovementTargetAngle.get())*VisionConstants.minuteRotationSpeed.get());
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
                         } else {
                             Logger.fine("Fire");
+                            spinup();
+                            driveForTime(VisionConstants.fireDriveSeconds.get(), VisionConstants.fireDriveSpeed.get());
+                            waitForTime((long) (VisionConstants.fireWaitSeconds.get() * 1000));
                             fire(2.5f);
                             break;
                         }
