@@ -122,14 +122,6 @@ public class DriveCode {
         Cluck.publish("Drive Reset Fastest Speed", fastestDriveSpeed.eventSet(0));
     }
 
-    private static FloatOutput[] simpleAll(ExtendedMotor[] cans, boolean reverse) throws ExtendedMotorFailureException {
-        FloatOutput[] outs = new FloatOutput[cans.length];
-        for (int i = 0; i < cans.length; i++) {
-            outs[i] = cans[i].simpleControl(reverse);
-        }
-        return outs;
-    }
-
     public static FloatOutput getLeftOutput() {
         return autonomousLeft;
     }

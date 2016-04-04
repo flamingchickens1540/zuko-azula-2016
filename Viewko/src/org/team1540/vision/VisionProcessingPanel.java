@@ -12,8 +12,6 @@ import javax.swing.JPanel;
 
 import org.team1540.zukoazula.VisionConstantsSub;
 
-import ccre.log.Logger;
-
 public class VisionProcessingPanel extends JPanel {
     private final WebcamThread webcam;
     private ImageProcessor processor;
