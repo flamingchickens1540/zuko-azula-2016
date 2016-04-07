@@ -100,6 +100,7 @@ public class VisionProcessingPanel extends JPanel {
                 g.drawString("ppd = " + ppd, 4, img.getHeight() + 28 + 14 * 1);
                 g.drawString("yaw = " + yaw, 4, img.getHeight() + 28 + 14 * 2);
                 g.drawString("pitch = " + pitch, 4, img.getHeight() + 28 + 14 * 3);
+                g.drawString("count = " + target.shape.getCount(), 4, 14 * 6);
             }
             g.setColor(Color.black);
             if (mx >= 0 && mx < img.getWidth() && my >= 0 && my < img.getHeight()) {
@@ -107,7 +108,7 @@ public class VisionProcessingPanel extends JPanel {
                 int nr = (i >> 16) & 0xFF;
                 int ng = (i >> 8) & 0xFF;
                 int nb = i & 0xFF;
-                g.drawString("rgb = " + nr + " " + ng + " " + nb, 4, img.getHeight() + 28 + 14 * 4);
+                g.drawString("rgb = " + nr + " " + ng + " " + nb, 4, img.getHeight() + 28 + 14 * 6);
                 int lr = r, lg = this.g, lb = b;
                 r = (int) (0.5 * r + 0.5 * nr);
                 this.g = (int) (0.5 * this.g + 0.5 * ng);
@@ -121,9 +122,9 @@ public class VisionProcessingPanel extends JPanel {
                 if (b == lb) {
                     b = nb;
                 }
-                g.drawString("avg = " + r + " " + this.g + " " + b, 4, img.getHeight() + 28 + 14 * 5);
+                g.drawString("avg = " + r + " " + this.g + " " + b, 4, img.getHeight() + 28 + 14 * 7);
             }
-            g.drawString("debug = " + debug, 4, img.getHeight() + 28 + 14 * 6);
+            g.drawString("debug = " + debug, 4, img.getHeight() + 28 + 14 * 8);
         }
         g.setColor(err == null ? Color.GREEN : Color.RED);
         g.drawString(err == null ? "good" : err, 300, 20);

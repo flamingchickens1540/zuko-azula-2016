@@ -79,7 +79,8 @@ public abstract class AutonomousBaseHighGoal extends AutonomousBase {
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
                         } else */if (Math.abs(yaw - VisionConstants.prelimAligningAngle.get()) >= VisionConstants.movementAligningEpsilon.get()){
                             Logger.fine("Turn time");
-                            turnForTime(VisionConstants.minuteRotationTime.get(), Math.signum(yaw - VisionConstants.prelimAligningAngle.get())*VisionConstants.minuteRotationSpeed.get());
+//                            turnForTime(VisionConstants.minuteRotationTime.get(), Math.signum(yaw - VisionConstants.prelimAligningAngle.get())*VisionConstants.minuteRotationSpeed.get());
+                            turnAngle(Math.signum(yaw - VisionConstants.prelimAligningAngle.get())*VisionConstants.minuteRotationAngle.get(), true);
                             waitForTime((long)(VisionConstants.cameraSettleTime.get()*1000.0f));
                         } else {
                             Logger.fine("Drive time");

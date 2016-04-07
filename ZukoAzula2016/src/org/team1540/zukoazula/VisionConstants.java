@@ -35,6 +35,7 @@ public class VisionConstants {
     public static final FloatInput fireDriveSpeed = ZukoAzula.mainTuning.getFloat("Vision Fire Drive Speed", 0.5f);
     public static final FloatInput fireDriveSeconds = ZukoAzula.mainTuning.getFloat("Vision Fire Drive Seconds", 0.5f);
     public static final FloatInput fireWaitSeconds = ZukoAzula.mainTuning.getFloat("Vision Fire Wait Seconds", 0.4f);
+    public static final FloatInput minuteRotationAngle = ZukoAzula.mainTuning.getFloat("Vision Minute Rotation Angle", 10.0f);
 
     public static void setup() {
         // do nothing
