@@ -30,6 +30,7 @@ public class IntakeArm {
     private static final ArbitratedFloat control = armBehaviors.addFloat();
 
     private static final FloatInput passiveSpeed = ZukoAzula.mainTuning.getFloat("Intake Arm Counteract Gravity Speed", .06f);
+    private static final FloatInput forceLowerSpeed = ZukoAzula.mainTuning.getFloat("Intake Arm Force Lower Speed", -.2f);
 
     private static final FloatCell autonomousVelocity = new FloatCell();
     private static BooleanInput autonomousStop;
@@ -40,6 +41,8 @@ public class IntakeArm {
         BooleanInput tooLow = armPosition.atMost(0);
         BooleanInput stop = tooHigh.and(targetArmVelocity.atLeast(0)).or(tooLow.and(targetArmVelocity.atMost(0)));
         autonomousStop = tooHigh.and(autonomousVelocity.atLeast(0)).or(tooLow.and(autonomousVelocity.atMost(0)));
+        
+        BooleanInput forceLower = armPosition.atLeast(0.5f).and(Shooter.shouldLowerArm);
 
         BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode()));
         EventOutput calibrateArms = encoder.eventSet(0).combine(needsToCalibrate.eventSet(false));
@@ -49,7 +52,9 @@ public class IntakeArm {
         control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(targetArmVelocity, 0f));
         BooleanInput teleopNotMoving = targetArmVelocity.inRange(FloatInput.zero, passiveSpeed).and(FRC.inTeleopMode());
         BooleanInput autonomousNotMoving = autonomousVelocity.inRange(FloatInput.zero, passiveSpeed).or(FRC.inAutonomousMode().not());
-        control.attach(armBehaviors.addBehavior("counteract gravity", armPosition.atMost(ZukoAzula.mainTuning.getFloat("Intake Arm Counter Gravity Height Threshold", .5f)).and(teleopNotMoving).and(autonomousNotMoving)), passiveSpeed);
+        BooleanInput counteractGravity = armPosition.atMost(ZukoAzula.mainTuning.getFloat("Intake Arm Counter Gravity Height Threshold", .5f)).and(teleopNotMoving).and(autonomousNotMoving);
+        control.attach(armBehaviors.addBehavior("counteract gravity", counteractGravity), passiveSpeed);
+        control.attach(armBehaviors.addBehavior("lower for fire", counteractGravity.and(forceLower)), forceLowerSpeed);
         control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .3f));
         control.send(PowerManager.managePower(1, intakeArmCAN.simpleControl()));
 

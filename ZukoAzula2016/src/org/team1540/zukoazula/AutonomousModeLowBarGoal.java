@@ -3,7 +3,7 @@ package org.team1540.zukoazula;
 import ccre.channel.FloatInput;
 import ccre.instinct.AutonomousModeOverException;
 
-public class AutonomousModeLowBar extends AutonomousBase {
+public class AutonomousModeLowBarGoal extends AutonomousBaseHighGoal {
 
     @Tunable(3f)
     private FloatInput time;
@@ -11,14 +11,21 @@ public class AutonomousModeLowBar extends AutonomousBase {
     @Tunable(0.5f)
     private FloatInput drivingSpeed;
 
-    public AutonomousModeLowBar() {
-        super("Drive Under Low Bar");
+    public AutonomousModeLowBarGoal() {
+        super("Drive Under Low Bar and Shoot");
     }
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
+        float startAngle = HeadingSensor.absoluteYaw.get();
         setIntakeArm(-.5f);
         driveForTime(time.get(), drivingSpeed.get());
         setIntakeArm(0);
+        setIntakeArm(0.5f);
+        waitForTime(200);
+        arcAngle(startAngle - HeadingSensor.absoluteYaw.get() + 30, true);
+        //turnForTime(0.3f, 1f);
+        setIntakeArm(0);
+        runVisionAutonomous();
     }
 }

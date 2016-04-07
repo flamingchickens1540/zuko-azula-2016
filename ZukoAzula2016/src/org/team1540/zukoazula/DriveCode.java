@@ -4,6 +4,7 @@ import ccre.behaviors.ArbitratedFloat;
 import ccre.behaviors.Behavior;
 import ccre.behaviors.BehaviorArbitrator;
 import ccre.channel.BooleanCell;
+import ccre.channel.BooleanInput;
 import ccre.channel.FloatCell;
 import ccre.channel.FloatIO;
 import ccre.channel.FloatInput;
@@ -28,6 +29,9 @@ public class DriveCode {
 
     public static final FloatInput ticksPerFoot = ZukoAzula.mainTuning.getFloat("Ticks Per Foot", 100);
 
+    private static final FloatInput leftCurrent = leftCANs[0].modFeedback().getOutputCurrent();
+    private static final FloatInput rightCurrent = rightCANs[0].modFeedback().getOutputCurrent();
+    private static final FloatInput stallingThreshold = ZukoAzula.mainTuning.getFloat("Drive Stalling Threshold", 4);
     public static final FloatInput leftDriveEncoder = leftCANs[0].modEncoder().getEncoderPosition().negated();
     public static final FloatInput rightDriveEncoder = rightCANs[0].modEncoder().getEncoderPosition().negated();
     private static final FloatInput driveEncodersAverage = leftDriveEncoder.plus(rightDriveEncoder).dividedBy(2);
@@ -103,6 +107,8 @@ public class DriveCode {
 
         Cluck.publish("Drive Left Raw", driveLeftAxis);
         Cluck.publish("Drive Right Raw", driveRightAxis);
+        Cluck.publish("Drive Left Current", leftCurrent);
+        Cluck.publish("Drive Right Current", rightCurrent);
         Cluck.publish("Drive Forwards Raw", driveRightTrigger);
         Cluck.publish("Drive Backwards Raw", driveLeftTrigger);
         Cluck.publish("Drive Left Motors", leftInput);
@@ -116,14 +122,6 @@ public class DriveCode {
         Cluck.publish("Drive Reset Fastest Speed", fastestDriveSpeed.eventSet(0));
     }
 
-    private static FloatOutput[] simpleAll(ExtendedMotor[] cans, boolean reverse) throws ExtendedMotorFailureException {
-        FloatOutput[] outs = new FloatOutput[cans.length];
-        for (int i = 0; i < cans.length; i++) {
-            outs[i] = cans[i].simpleControl(reverse);
-        }
-        return outs;
-    }
-
     public static FloatOutput getLeftOutput() {
         return autonomousLeft;
     }
@@ -134,6 +132,10 @@ public class DriveCode {
 
     public static FloatInput getEncoder() {
         return driveEncodersAverage;
+    }
+
+    public static BooleanInput isStalling() {
+        return leftCurrent.atLeast(stallingThreshold).and(rightCurrent.atLeast(stallingThreshold));
     }
 
     public static float getCoastDistance(float speed) {
