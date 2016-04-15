@@ -71,15 +71,19 @@ public class Deployment {
             Logger.info("No valid local address! Likely to fail.");
         }
         Artifact result = build();
-        DepRoboRIO rio = DepRoboRIO.byNameOrIP("10.15.40.19");
-        if (rio == null) {
-            Logger.severe("Could not connect to 10.15.40.19!");
-            return;
-        }
-        try (DepRoboRIO.RIOShell rshell = rio.openDefaultShell()) {
-            rshell.verifyRIO();
-            rshell.archiveLogsTo(DepProject.root());
-            rshell.downloadAndStart(result);
+        for (int i = 0; i < 500; i++) {
+            DepRoboRIO rio = DepRoboRIO.byNameOrIP("10.15.40.19");
+            if (rio == null) {
+                Logger.severe("Could not connect to 10.15.40.19!");
+                Thread.sleep(1000);
+                continue;
+            }
+            try (DepRoboRIO.RIOShell rshell = rio.openDefaultShell()) {
+                rshell.verifyRIO();
+                rshell.archiveLogsTo(DepProject.root());
+                rshell.downloadAndStart(result);
+            }
+            break;
         }
     }
 

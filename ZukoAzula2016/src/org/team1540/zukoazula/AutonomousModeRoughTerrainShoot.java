@@ -26,7 +26,7 @@ public class AutonomousModeRoughTerrainShoot extends AutonomousBaseHighGoal {
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         float startAngle = HeadingSensor.absoluteYaw.get();
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
-        turnAngle(startAngle - HeadingSensor.absoluteYaw.get(), true);
+        turnAngle(startAngle - HeadingSensor.absoluteYaw.get() - 45, true);
         runVisionAutonomous();
     }
 }

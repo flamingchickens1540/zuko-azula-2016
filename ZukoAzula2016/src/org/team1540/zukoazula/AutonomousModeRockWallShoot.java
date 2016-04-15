@@ -27,7 +27,7 @@ public class AutonomousModeRockWallShoot extends AutonomousBaseHighGoal {
         float startAngle = HeadingSensor.absoluteYaw.get();
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
         driveForTime(afterTime.get(), drivingSpeed.get());
-        turnAngle(startAngle - HeadingSensor.absoluteYaw.get(), true);
+        turnAngle(startAngle - HeadingSensor.absoluteYaw.get() - 45, true);
         runVisionAutonomous();
     }
 }

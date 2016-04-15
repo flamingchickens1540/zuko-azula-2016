@@ -46,6 +46,7 @@ public class WebcamThread {
                 body();
             }
         };
+        this.thread.setPriority(Thread.MAX_PRIORITY - 1);
         this.thread.start();
     }
 

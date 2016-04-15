@@ -23,7 +23,7 @@ public class Autonomous {
         // Will need to be retuned after we fix the encoders
         mainModule.addMode(new AutonomousModeLowBar());
         mainModule.addMode(new AutonomousModeLowBarGoal());
-        mainModule.addMode(new AutonomousModeLowBarShallAndShoot());
+        mainModule.addMode(new AutonomousModeLowBarStallAndShoot());
         mainModule.addMode(new AutonomousModeRockWall());
         mainModule.addMode(new AutonomousModeRockWallShoot());
         mainModule.addMode(new AutonomousModeMoat());
@@ -39,6 +39,10 @@ public class Autonomous {
         ExpirationTimer spikeChecker = new ExpirationTimer();
         DriveCode.maximumCurrent.atLeast(spikeLevel).send(spikeChecker.getRunningControl());
         spikeChecker.schedule(500, mainModule::abortMode);
-        FRC.registerAutonomous(mainModule);
+        // FRC.registerAutonomous(mainModule);
+        BooleanCell runFalseAutonomous = new BooleanCell();
+        Cluck.publish("(DEBUG ONLY) RUN FALSE AUTO", runFalseAutonomous);
+        runFalseAutonomous.setFalseWhen(FRC.startDisabled);
+        mainModule.setShouldBeRunning((FRC.robotEnabled().and(FRC.inAutonomousMode())).or(runFalseAutonomous));
     }
 }

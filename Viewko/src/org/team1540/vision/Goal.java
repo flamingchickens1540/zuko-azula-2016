@@ -24,4 +24,8 @@ public class Goal {
     public float getUpperDistance(float conversionConstant) {
         return (float) (conversionConstant / Math.tan(ul.distance(ur)));
     }
+    
+    public String toString() {
+        return "Goal(" + ul + " " + ur + " " + ll + " " + lr + " " + shape + ")";
+    }
 }

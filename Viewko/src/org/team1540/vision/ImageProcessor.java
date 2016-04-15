@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import ccre.log.Logger;
+
 public class ImageProcessor {
     private int[] preallocatedImage;
     private boolean[] preallocatedProcessedImage;
@@ -35,6 +37,8 @@ public class ImageProcessor {
         int height = raster.getHeight();
         int[] pixels = raster.getPixels(0, 0, width, height, preallocatedImage); 
         boolean[] filtered = preallocatedProcessedImage;
+        
+        Logger.fine("(A) Exec");
 
         for (int i = 0; i < width * height; ++i) {
             // if the given pixel falls within the color threshold
@@ -45,22 +49,28 @@ public class ImageProcessor {
                 // filled with the value 'false' each step
                 filtered[i] = false;
             }
-
-//            System.out.println(Math.abs(pixels[i*3+0]) + " " + Math.abs(pixels[i*3+1]) + " " + Math.abs(pixels[i*3+0]));
         }
+        
+        Logger.fine("(B) Exec");
 
         List<Goal> goals = new ArrayList<>();
 
         // partition the image into a list of separate shapes
         List<Shape> shapes = partitionShapes(filtered, width);
+        
+        Logger.fine("(C) Exec");
         /*
          * System.out.println("Shapes: " + shapes.size()); System.out.println(
          * "Shapes: " + shapes); if (shapes.size() != 0) { System.out.println(
          * "Shapes: " + shapes.get(0).getCount()); }
          */
         shapes.removeIf(x -> x.getCount() < minGoalPixelCount);
+        Logger.fine("(D) Exec of " + shapes.size());
         for (Shape shape : shapes) {
+            Logger.fine("(E) Begin of " + shape);
             List<Point> convexHull = fastConvexHull(shapeToPoints(shape));
+            
+            Logger.fine("(F) Exec");
 
             // find best fit (for a goal)
             Point topRight = convexHull.get(0); // a shape must have at least
@@ -86,16 +96,26 @@ public class ImageProcessor {
                     topRight = p;
                 }
             }
+            
+            Logger.fine("(G) Exec");
 
+            boolean[] model = preallocatedProcessedImage;
+            Arrays.fill(model, false);
             // generate a model goal and compare it to what the camera sees
-            boolean[] model = generateModelGoal(width, height, topLeft, bottomLeft, topRight, bottomRight);
+            generateModelGoal(model, width, height, topLeft, bottomLeft, topRight, bottomRight);
+            
+            Logger.fine("(H) Exec");
             float similarity = compareImages(shape.getShape(), model);
+            
+            Logger.fine("(I) Exec");
 
-            //if (similarity > 1.0 - similarityThreshold && (Math.abs((Math.abs(topLeft.distance(topRight) / topLeft.distance(bottomLeft)) + Math.abs(bottomLeft.distance(bottomRight) / topRight.distance(bottomRight)) / 2.0f) - goalAspectRatio) < goalAspectRatioThreshold)) {
-            {
+            if (similarity > 1.0 - similarityThreshold && (Math.abs((Math.abs(topLeft.distance(topRight) / topLeft.distance(bottomLeft)) + Math.abs(bottomLeft.distance(bottomRight) / topRight.distance(bottomRight)) / 2.0f) - goalAspectRatio) < goalAspectRatioThreshold)) {
                 goals.add(new Goal(topLeft, topRight, bottomRight, bottomLeft, shape));
             }
+            Logger.fine("(J) Finish " + shape);
         }
+        
+        Logger.fine("(K) Done");
 
         return goals;
     }
@@ -125,8 +145,10 @@ public class ImageProcessor {
         return (float) match / (float) total;
     }
 
-    private boolean[] generateModelGoal(int width, int height, Point tl, Point bl, Point tr, Point br) {
-        boolean[] model = new boolean[width * height];
+    private void generateModelGoal(boolean[] model, int width, int height, Point tl, Point bl, Point tr, Point br) {
+        if (model.length != width * height) {
+            throw new IllegalArgumentException();
+        }
 
         int x0 = (int) ((tl.x * 9 + tr.x) / 10.0f);
         int y0 = (int) ((tl.y * 9 + tr.y) / 10.0f);
@@ -150,8 +172,6 @@ public class ImageProcessor {
         writeLine(model, width, x2, y2, x3, y3);
         writeLine(model, width, x3, y3, x0, y0);
         writeFill(model, width, tl.x + 1, tl.y + 1);
-
-        return model;
     }
 
     private void writeLine(boolean[] dst, int width, int x0, int y0, int x1, int y1) {

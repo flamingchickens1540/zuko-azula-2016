@@ -80,10 +80,12 @@ public class DriveCode {
     }
 
     public static void setup() throws ExtendedMotorFailureException {
+        FloatInput scaleFactor = ZukoAzula.controlBinding.addBoolean("Drive with Precision").toFloat(1, ZukoAzula.mainTuning.getFloat("Drive Precision Factor", 0.5f));
+        FloatInput slideFactor = ZukoAzula.controlBinding.addBoolean("Drive Slide Forward").toFloat(0, ZukoAzula.mainTuning.getFloat("Drive Slide Factor", 0.1f));
         leftInput.attach(autonomous, autonomousLeft);
         rightInput.attach(autonomous, autonomousRight);
-        leftInput.attach(teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
-        rightInput.attach(teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)));
+        leftInput.attach(teleop, driveLeftAxis.plus(driveRightTrigger.minus(driveLeftTrigger)).multipliedBy(scaleFactor).plus(slideFactor));
+        rightInput.attach(teleop, driveRightAxis.plus(driveRightTrigger.minus(driveLeftTrigger)).multipliedBy(scaleFactor).plus(slideFactor));
         leftInput.attach(pit, FloatInput.zero);
         rightInput.attach(pit, FloatInput.zero);
         leftInput.attach(challenge, FloatInput.zero);

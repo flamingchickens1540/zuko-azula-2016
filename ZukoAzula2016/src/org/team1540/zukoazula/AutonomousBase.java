@@ -121,7 +121,8 @@ public abstract class AutonomousBase extends InstinctModeModule {
         allMotors.set(0);
     }
 
-    protected void turnToAngle(float angle) throws AutonomousModeOverException, InterruptedException {
+    // THIS FUNCTION IS BADLY WRITTEN; DO NOT USE
+    private void turnToAngle(float angle) throws AutonomousModeOverException, InterruptedException {
         FloatInput desiredAngle = FloatInput.always(angle);
         PIDController pid = new PIDController(HeadingSensor.absoluteYaw, desiredAngle, turningP, turningI, turningD);
         pid.setOutputBounds(.5f);
@@ -140,14 +141,30 @@ public abstract class AutonomousBase extends InstinctModeModule {
             adjustedDegrees = degrees;
         }
         float start = HeadingSensor.absoluteYaw.get();
+        Logger.finest("Begin turnAngle(" + degrees + "," + adjustAngle + ") -> " + adjustedDegrees + "," + start);
         if (adjustedDegrees > 0) {
             turnMotors.set(rotateSpeed.get());
-            waitUntilAtLeast(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+            Logger.finest("Positive begin wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            boolean success = false;
+            try {
+                waitUntilAtLeast(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+                success = true;
+            } finally {
+                Logger.finest("Positive end " + success + " wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            }
         } else {
             turnMotors.set(-rotateSpeed.get());
-            waitUntilAtMost(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+            Logger.finest("Negative begin wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            boolean success = false;
+            try {
+                waitUntilAtMost(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+                success = true;
+            } finally {
+                Logger.finest("Negative end " + success + "wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            }
         }
         allMotors.set(0);
+        Logger.finest("End turnAngle");
     }
 
     protected void startWarmup() throws AutonomousModeOverException, InterruptedException {

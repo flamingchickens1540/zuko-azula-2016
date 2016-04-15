@@ -42,7 +42,7 @@ public class IntakeArm {
         BooleanInput stop = tooHigh.and(targetArmVelocity.atLeast(0)).or(tooLow.and(targetArmVelocity.atMost(0)));
         autonomousStop = tooHigh.and(autonomousVelocity.atLeast(0)).or(tooLow.and(autonomousVelocity.atMost(0)));
         
-        BooleanInput forceLower = armPosition.atLeast(0.5f).and(Shooter.shouldLowerArm);
+        //BooleanInput forceLower = armPosition.atLeast(0.5f).and(Shooter.shouldLowerArm);
 
         BooleanInput calibrating = needsToCalibrate.and(FRC.inTeleopMode().or(FRC.inAutonomousMode()));
         EventOutput calibrateArms = encoder.eventSet(0).combine(needsToCalibrate.eventSet(false));
@@ -52,9 +52,9 @@ public class IntakeArm {
         control.attach(armBehaviors.addBehavior("teleop", FRC.inTeleopMode()), stop.toFloat(targetArmVelocity, 0f));
         BooleanInput teleopNotMoving = targetArmVelocity.inRange(FloatInput.zero, passiveSpeed).and(FRC.inTeleopMode());
         BooleanInput autonomousNotMoving = autonomousVelocity.inRange(FloatInput.zero, passiveSpeed).or(FRC.inAutonomousMode().not());
-        BooleanInput counteractGravity = armPosition.atMost(ZukoAzula.mainTuning.getFloat("Intake Arm Counter Gravity Height Threshold", .5f)).and(teleopNotMoving).and(autonomousNotMoving);
+        BooleanInput counteractGravity = armPosition.atLeast(ZukoAzula.mainTuning.getFloat("Intake Arm Counter Gravity Height Threshold", .5f)).and(teleopNotMoving).and(autonomousNotMoving);
         control.attach(armBehaviors.addBehavior("counteract gravity", counteractGravity), passiveSpeed);
-        control.attach(armBehaviors.addBehavior("lower for fire", counteractGravity.and(forceLower)), forceLowerSpeed);
+        //control.attach(armBehaviors.addBehavior("lower for fire", counteractGravity.and(forceLower)), forceLowerSpeed);
         control.attach(armBehaviors.addBehavior("calibrating", calibrating), ZukoAzula.mainTuning.getFloat("Intake Arm Speed During Calibration", .3f));
         control.send(PowerManager.managePower(1, intakeArmCAN.simpleControl()));
 
