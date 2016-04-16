@@ -22,6 +22,8 @@ public class Deployment {
      */
     public static final Class<? extends FRCApplication> robotMain = org.team1540.zukoazula.ZukoAzula.class;
 
+    public static final Class<?> kangarooMain = org.team1540.kangaroo.KangarooMain.class;
+
     /**
      * A deployment task that downloads your robot code to a roboRIO found based
      * on your team number.
@@ -68,5 +70,14 @@ public class Deployment {
                 }
             }
         });
+    }
+
+    public static void deployKangaroo() throws Exception {
+        Artifact result = DepKangaroo.buildProject(kangarooMain);
+
+        try (DepKangaroo.KangarooShell shell = DepKangaroo.connectAndVerify("10.15.40.14")) {
+            shell.archiveLogsTo(DepProject.root());
+            shell.downloadAndStart(result);
+        }
     }
 }
