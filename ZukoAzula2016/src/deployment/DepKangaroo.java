@@ -135,7 +135,7 @@ public class DepKangaroo {
     }
 
     public static Artifact buildProject(Class<?> main) throws IOException {
-        Artifact output = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THIN));
+        Artifact output = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THICK));
         Manifest manifest = DepJar.manifest("Main-Class", main.getName());
         return DepJar.combine(manifest, JarBuilder.DELETE, output, DepRoboRIO.getJar(DepRoboRIO.LIBS_THIN));
     }
