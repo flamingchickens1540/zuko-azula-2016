@@ -72,6 +72,7 @@ public class Deployment {
         });
     }
 
+    @DepTask
     public static void deployKangaroo() throws Exception {
         Artifact result = DepKangaroo.buildProject(kangarooMain);
 
