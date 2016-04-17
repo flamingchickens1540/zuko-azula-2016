@@ -111,10 +111,9 @@ public class Deployment {
         DepEgg.layEgg(result, new ArtifactDeployer() {
             @Override
             public void deployArtifact(Artifact artifact) throws Exception {
-//                try (DepRoboRIO.RIOShell rshell = DepRoboRIO.discoverAndVerify(1540)) {
-//                    rshell.downloadAndStart(artifact);
-//                }
-                DepEmulator.emulate(artifact);
+                try (DepRoboRIO.RIOShell rshell = DepRoboRIO.discoverAndVerify(1540)) {
+                    rshell.downloadAndStart(artifact);
+                }
             }
         });
     }
