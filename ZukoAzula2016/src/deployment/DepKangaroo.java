@@ -74,10 +74,6 @@ public class DepKangaroo {
             super(ip, username, password);
         }
 
-        public boolean checkJRE() throws IOException {
-            return exec("test -d /usr/local/robotics/JRE") == 0;
-        }
-
         public void archiveLogsTo(File destdir) throws IOException {
             if (this.exec("ls ccre-storage/log-* >/dev/null 2>/dev/null") == 0) {
                 long name = random.nextLong();
