@@ -89,54 +89,37 @@ public class DepKangaroo {
         }
 
         public void verifyKangaroo() throws IOException {
-            if (!checkJRE()) {
-                throw new RuntimeException("JRE not installed! See https://wpilib.screenstepslive.com/s/4485/m/13503/l/288822-installing-java-8-on-the-roborio-using-the-frc-roborio-java-installer-java-only");
+            if (exec("test -d /usr/local/robotics/JRE") != 0) {
+                throw new RuntimeException("JRE not installed!");
             }
         }
 
         public void downloadCode(File jar) throws IOException {
             Logger.info("Starting deployment...");
-            sendFileTo(jar, "/home/robotics/Kangaroo.jar");
+            sendFileTo(jar, "/home/robotics/Viewko.jar");
             Logger.info("Download complete.");
         }
 
         public void stopRobot() throws IOException {
-            // it's okay if this fails
-//            exec("killall netconsole-host");
+            exec("killall -9 java");
         }
 
         public void startRobot() throws IOException {
-            execCheck("java -jar /home/robotics/Kangaroo.jar");
+            execCheck("java -jar /home/robotics/Viewko.jar");
         }
 
-        /**
-         * Downloads the Jar file <code>code</code> to the robot, and restarts
-         * the robot code.
-         *
-         * @param code the Jar file to download.
-         * @throws IOException if something fails.
-         */
         public void downloadAndStart(File code) throws IOException {
             stopRobot();
             downloadCode(code);
             startRobot();
         }
 
-        /**
-         * Downloads the Artifact <code>result</code> to the robot, once
-         * converted to a Jar, and restarts the robot code.
-         *
-         * @param result the Artifact to download.
-         * @throws IOException if something fails.
-         */
         public void downloadAndStart(Artifact result) throws IOException {
             downloadAndStart(result.toJar(false).toFile());
         }
     }
 
-    public static Artifact buildProject(Class<?> main) throws IOException {
-        Artifact output = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THICK));
-        Manifest manifest = DepJar.manifest("Main-Class", main.getName());
-        return DepJar.combine(manifest, JarBuilder.DELETE, output, DepRoboRIO.getJar(DepRoboRIO.LIBS_THIN));
+    public static Artifact build() throws IOException {
+        return DepJava.build(DepProject.directory("../Viewko/src"), new File(DepProject.ccreProject("CommonChickenRuntimeEngine"), "CCRE.jar"));
     }
 }

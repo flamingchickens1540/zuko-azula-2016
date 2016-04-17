@@ -10,7 +10,8 @@ import ccre.frc.FRC;
 public class ChallengeBrake {
     private static final BooleanInput firstTrigger = ZukoAzula.controlBinding.addBoolean("Challenge Brake A");
     private static final BooleanInput secondTrigger = ZukoAzula.controlBinding.addBoolean("Challenge Brake B");
-    private static final BooleanInput composedTriggers = FRC.inTeleopMode().and(firstTrigger).and(secondTrigger);
+    private static final BooleanInput thirdTrigger = ZukoAzula.controlBinding.addBoolean("Challenge Brake C");
+    private static final BooleanInput composedTriggers = FRC.inTeleopMode().and(thirdTrigger.or(firstTrigger.and(secondTrigger)));
 
     // needs to be this for Zuko; the reverse for Azula.
     private static final BooleanCell servoState = new BooleanCell();

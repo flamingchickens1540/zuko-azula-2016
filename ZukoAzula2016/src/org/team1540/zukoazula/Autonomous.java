@@ -20,19 +20,29 @@ public class Autonomous {
     public static void setup() {
         mainModule.publishDefaultControls(true, true);
         mainModule.publishRConfControls();
-        mainModule.addMode(new AutonomousModeTestSpeeds());
         // Will need to be retuned after we fix the encoders
         mainModule.addMode(new AutonomousModeLowBar());
+        mainModule.addMode(new AutonomousModeLowBarGoal());
+        mainModule.addMode(new AutonomousModeLowBarStallAndShoot());
         mainModule.addMode(new AutonomousModeRockWall());
+        mainModule.addMode(new AutonomousModeRockWallShoot());
         mainModule.addMode(new AutonomousModeMoat());
+        mainModule.addMode(new AutonomousModeMoatShoot());
         mainModule.addMode(new AutonomousModeRamparts());
+        mainModule.addMode(new AutonomousModeRampartsShoot());
         mainModule.addMode(new AutonomousModeRoughTerrain());
+        mainModule.addMode(new AutonomousModeRoughTerrainShoot());
         mainModule.addMode(new AutonomousModePortcullis()); // Untested
+        mainModule.addMode(new AutonomousModeHighGoal());
         mainModule.loadSettings(mainModule.addNullMode("none", "I'm a sitting chicken!"));
         Cluck.publish("(TEST) SPIKE CUR", DriveCode.maximumCurrent);
         ExpirationTimer spikeChecker = new ExpirationTimer();
         DriveCode.maximumCurrent.atLeast(spikeLevel).send(spikeChecker.getRunningControl());
         spikeChecker.schedule(500, mainModule::abortMode);
-        FRC.registerAutonomous(mainModule);
+        // FRC.registerAutonomous(mainModule);
+        BooleanCell runFalseAutonomous = new BooleanCell();
+        Cluck.publish("(DEBUG ONLY) RUN FALSE AUTO", runFalseAutonomous);
+        runFalseAutonomous.setFalseWhen(FRC.startDisabled);
+        mainModule.setShouldBeRunning((FRC.robotEnabled().and(FRC.inAutonomousMode())).or(runFalseAutonomous));
     }
 }

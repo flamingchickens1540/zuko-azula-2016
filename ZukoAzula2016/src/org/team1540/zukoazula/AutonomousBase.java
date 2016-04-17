@@ -4,9 +4,12 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import ccre.channel.BooleanInput;
+import ccre.channel.CancelOutput;
 import ccre.channel.FloatInput;
 import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
+import ccre.ctrl.PIDController;
+import ccre.frc.FRC;
 import ccre.instinct.AutonomousModeOverException;
 import ccre.instinct.InstinctModeModule;
 import ccre.log.Logger;
@@ -23,9 +26,15 @@ public abstract class AutonomousBase extends InstinctModeModule {
     private static final FloatOutput turnMotors = DriveCode.getLeftOutput().combine(DriveCode.getRightOutput().negate());
 
     private static final FloatInput rotateMultiplier = Autonomous.autoTuning.getFloat("Autonomous Rotate Multiplier", 1);
-    private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 0);
+    private static final FloatInput rotateOffset = Autonomous.autoTuning.getFloat("Autonomous Rotate Offset", 20);
     private static final FloatInput rotateSpeed = Autonomous.autoTuning.getFloat("Autonomous Rotate Speed", .5f);
+    private static final FloatInput forwardArcSpeed = Autonomous.autoTuning.getFloat("Autonomous Arc Forward Speed", 0.5f);
+    private static final FloatInput reverseArcSpeed = Autonomous.autoTuning.getFloat("Autonomous Arc Reverse Speed", 0f);
     private static final FloatInput portcullisWiggleRoom = Autonomous.autoTuning.getFloat("Autonomous Portcullis Wiggle Room", .05f);
+    private static final FloatInput turningP = Autonomous.autoTuning.getFloat("Autonomous PID P", .1f);
+    private static final FloatInput turningI = Autonomous.autoTuning.getFloat("Autonomous PID I", 0);
+    private static final FloatInput turningD = Autonomous.autoTuning.getFloat("Autonomous PID D", 0);
+    private static final FloatInput turningError = Autonomous.autoTuning.getFloat("Autonomous Turning Acceptable Error", 2);
 
     public AutonomousBase(String modeName) {
         super(modeName);
@@ -68,31 +77,101 @@ public abstract class AutonomousBase extends InstinctModeModule {
         allMotors.set(0);
     }
 
+    protected void driveUntilStall(float speed) throws AutonomousModeOverException, InterruptedException {
+        allMotors.set(speed);
+        waitUntil(DriveCode.isStalling());
+        allMotors.set(0);
+    }
+
+    protected void arcForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
+        if (speed > 0) {
+            DriveCode.getLeftOutput().set(speed);
+            DriveCode.getRightOutput().set(0);
+        } else {
+            DriveCode.getLeftOutput().set(0);
+            DriveCode.getRightOutput().set(-speed);
+        }
+        waitSeconds(seconds);
+        allMotors.set(0);
+    }
+
+    protected void arcAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
+        float adjustedDegrees = Math.abs(degrees) / rotateMultiplier.get() - rotateOffset.get();
+        if (adjustAngle && adjustedDegrees > 0) {
+            adjustedDegrees *= Math.signum(degrees);
+        } else {
+            adjustedDegrees = degrees;
+        }
+        float start = HeadingSensor.absoluteYaw.get();
+        if (adjustedDegrees > 0) {
+            DriveCode.getLeftOutput().set(forwardArcSpeed.get());
+            DriveCode.getRightOutput().set(-reverseArcSpeed.get());
+            waitUntilAtLeast(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+        } else {
+            DriveCode.getLeftOutput().set(reverseArcSpeed.get());
+            DriveCode.getRightOutput().set(-forwardArcSpeed.get());
+            waitUntilAtMost(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+        }
+        allMotors.set(0);
+    }
+
     protected void turnForTime(float seconds, float speed) throws AutonomousModeOverException, InterruptedException {
         turnMotors.set(speed);
         waitSeconds(seconds);
         allMotors.set(0);
     }
 
-    protected void turnAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
-        float start = HeadingSensor.yawAngle.get();
-        if (degrees > 0) {
-            float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() + rotateOffset.get() : degrees;
-            if (actualDegrees > 0) {
-                turnMotors.set(rotateSpeed.get());
-                waitUntilAtMost(HeadingSensor.yawAngle, start - actualDegrees);
-            }
-        } else {
-            float actualDegrees = adjustAngle ? degrees * rotateMultiplier.get() - rotateOffset.get() : degrees;
-            if (actualDegrees < 0) {
-                turnMotors.set(-rotateSpeed.get());
-                waitUntilAtLeast(HeadingSensor.yawAngle, start - actualDegrees);
-            }
-        }
+    // THIS FUNCTION IS BADLY WRITTEN; DO NOT USE
+    private void turnToAngle(float angle) throws AutonomousModeOverException, InterruptedException {
+        FloatInput desiredAngle = FloatInput.always(angle);
+        PIDController pid = new PIDController(HeadingSensor.absoluteYaw, desiredAngle, turningP, turningI, turningD);
+        pid.setOutputBounds(.5f);
+        pid.updateWhen(FRC.constantPeriodic);
+        CancelOutput cancel = pid.send(turnMotors);
+        waitUntil(HeadingSensor.absoluteYaw.minus(desiredAngle).inRange(turningError.negated(), turningError));
+        cancel.cancel();
         allMotors.set(0);
     }
 
+    protected void turnAngle(float degrees, boolean adjustAngle) throws AutonomousModeOverException, InterruptedException {
+        float adjustedDegrees = Math.abs(degrees) / rotateMultiplier.get() - rotateOffset.get();
+        if (adjustAngle && adjustedDegrees > 0) {
+            adjustedDegrees *= Math.signum(degrees);
+        } else {
+            adjustedDegrees = degrees;
+        }
+        float start = HeadingSensor.absoluteYaw.get();
+        Logger.finest("Begin turnAngle(" + degrees + "," + adjustAngle + ") -> " + adjustedDegrees + "," + start);
+        if (adjustedDegrees > 0) {
+            turnMotors.set(rotateSpeed.get());
+            Logger.finest("Positive begin wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            boolean success = false;
+            try {
+                waitUntilAtLeast(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+                success = true;
+            } finally {
+                Logger.finest("Positive end " + success + " wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            }
+        } else {
+            turnMotors.set(-rotateSpeed.get());
+            Logger.finest("Negative begin wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            boolean success = false;
+            try {
+                waitUntilAtMost(HeadingSensor.absoluteYaw, start + adjustedDegrees);
+                success = true;
+            } finally {
+                Logger.finest("Negative end " + success + "wait: " + HeadingSensor.absoluteYaw.get() + " to " + (start + adjustedDegrees));
+            }
+        }
+        allMotors.set(0);
+        Logger.finest("End turnAngle");
+    }
+
     protected void startWarmup() throws AutonomousModeOverException, InterruptedException {
+        Shooter.warmupEvent();
+    }
+
+    protected void spinup() throws AutonomousModeOverException, InterruptedException {
         Shooter.warmupEvent();
     }
 

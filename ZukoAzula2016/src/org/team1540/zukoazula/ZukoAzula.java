@@ -1,8 +1,16 @@
 package org.team1540.zukoazula;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import ccre.channel.BooleanOutput;
+import ccre.channel.EventInput;
+import ccre.channel.EventOutput;
 import ccre.cluck.Cluck;
+import ccre.concurrency.ReporterThread;
 import ccre.ctrl.ExtendedMotorFailureException;
 import ccre.ctrl.binding.ControlBindingCreator;
 import ccre.frc.FRC;
@@ -11,7 +19,12 @@ import ccre.log.Logger;
 import ccre.rconf.RConf.Entry;
 import ccre.rconf.RConf;
 import ccre.rconf.RConfable;
+import ccre.scheduler.Scheduler;
+import ccre.storage.Storage;
+import ccre.time.Time;
+import ccre.timers.Ticker;
 import ccre.tuning.TuningContext;
+import sun.management.HotSpotDiagnostic;
 
 public class ZukoAzula implements FRCApplication {
 
@@ -21,7 +34,7 @@ public class ZukoAzula implements FRCApplication {
     @Override
     public void setupRobot() throws ExtendedMotorFailureException {
         Logger.info("🐣 CHEEP CHEEP 🐣");
-        //Instrumentation.setup();
+        // Instrumentation.setup();
 
         DriveCode.setup();
         Autonomous.setup();
@@ -30,6 +43,7 @@ public class ZukoAzula implements FRCApplication {
         IntakeArm.setup();
         ChallengeBrake.setup();
         HeadingSensor.setup();
+        VisionConstants.setup();
 
         Cluck.publishRConf("Diagnostics", new RConfable() {
             @Override
@@ -77,5 +91,36 @@ public class ZukoAzula implements FRCApplication {
                 return ents.toArray(new Entry[ents.size()]);
             }
         });
+
+        for (int i = 11; i <= 18; i++) {
+            runCamera("cam" + i, "10.15.40." + i);
+        }
+
+        Cluck.publish("(DEBUG) Dump heap", () -> {
+            HotSpotDiagnostic hsd = new sun.management.HotSpotDiagnostic();
+            try {
+                hsd.dumpHeap("/tmp/heap-dump-" + System.currentTimeMillis(), false);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            Logger.info("DUMPED");
+        });
+    }
+
+    private static final EventInput hundred = new Ticker(100);
+
+    private static void runCamera(String name, String address) {
+        Logger.info("RUN CAMERA: " + name);
+        OutputStream cam = Cluck.publishOS(name);
+        byte[] avail = (address + "\n").getBytes();
+        byte[] unavail = ("autonomous\n").getBytes();
+        BooleanOutput update = (b) -> {
+            try {
+                cam.write(b ? unavail : avail);
+            } catch (IOException e) {
+                Logger.warning("Cannot write", e);
+            }
+        };
+        update.setWhen(FRC.inAutonomousMode(), hundred);
     }
 }
