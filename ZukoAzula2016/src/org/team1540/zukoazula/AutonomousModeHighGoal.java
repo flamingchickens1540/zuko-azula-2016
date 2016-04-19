@@ -11,7 +11,7 @@ import ccre.channel.FloatInput;
 import ccre.instinct.AutonomousModeOverException;
 import ccre.log.Logger;
 
-public class AutonomousModeHighGoal extends AutonomousBaseHighGoal {
+public class AutonomousModeHighGoal extends AutonomousBaseKangaroo {
 
     public AutonomousModeHighGoal() {
         super("Drive and Shoot");
@@ -19,6 +19,6 @@ public class AutonomousModeHighGoal extends AutonomousBaseHighGoal {
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
-        runVisionAutonomous();
+        runKangarooAutonomous();
     }
 }

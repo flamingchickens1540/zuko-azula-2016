@@ -120,6 +120,10 @@ public abstract class AutonomousBase extends InstinctModeModule {
         waitSeconds(seconds);
         allMotors.set(0);
     }
+    
+    protected void turnVelocity(float velocity) throws AutonomousModeOverException {
+        turnMotors.set(velocity);
+    }
 
     // THIS FUNCTION IS BADLY WRITTEN; DO NOT USE
     private void turnToAngle(float angle) throws AutonomousModeOverException, InterruptedException {

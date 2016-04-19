@@ -31,7 +31,7 @@ public class VisionProcessingPanel extends JPanel {
         }, (error) -> {
             err = error;
         });
-        webcam.setAddress("10.15.40.13");
+        webcam.setAddress("10.15.40.12");
         processor = new ImageProcessor(100, 100);
         addMouseMotionListener(new MouseMotionListener() {
             @Override

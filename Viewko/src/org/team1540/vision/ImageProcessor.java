@@ -38,7 +38,7 @@ public class ImageProcessor {
         int[] pixels = raster.getPixels(0, 0, width, height, preallocatedImage); 
         boolean[] filtered = preallocatedProcessedImage;
         
-        Logger.fine("(A) Exec");
+//        Logger.fine("(A) Exec");
 
         for (int i = 0; i < width * height; ++i) {
             // if the given pixel falls within the color threshold
@@ -51,26 +51,26 @@ public class ImageProcessor {
             }
         }
         
-        Logger.fine("(B) Exec");
+//        Logger.fine("(B) Exec");
 
         List<Goal> goals = new ArrayList<>();
 
         // partition the image into a list of separate shapes
         List<Shape> shapes = partitionShapes(filtered, width);
         
-        Logger.fine("(C) Exec");
+//        Logger.fine("(C) Exec");
         /*
          * System.out.println("Shapes: " + shapes.size()); System.out.println(
          * "Shapes: " + shapes); if (shapes.size() != 0) { System.out.println(
          * "Shapes: " + shapes.get(0).getCount()); }
          */
         shapes.removeIf(x -> x.getCount() < minGoalPixelCount);
-        Logger.fine("(D) Exec of " + shapes.size());
+//        Logger.fine("(D) Exec of " + shapes.size());
         for (Shape shape : shapes) {
-            Logger.fine("(E) Begin of " + shape);
+//            Logger.fine("(E) Begin of " + shape);
             List<Point> convexHull = fastConvexHull(shapeToPoints(shape));
             
-            Logger.fine("(F) Exec");
+//            Logger.fine("(F) Exec");
 
             // find best fit (for a goal)
             Point topRight = convexHull.get(0); // a shape must have at least
@@ -97,25 +97,25 @@ public class ImageProcessor {
                 }
             }
             
-            Logger.fine("(G) Exec");
+//            Logger.fine("(G) Exec");
 
             boolean[] model = preallocatedProcessedImage;
             Arrays.fill(model, false);
             // generate a model goal and compare it to what the camera sees
             generateModelGoal(model, width, height, topLeft, bottomLeft, topRight, bottomRight);
             
-            Logger.fine("(H) Exec");
+//            Logger.fine("(H) Exec");
             float similarity = compareImages(shape.getShape(), model);
             
-            Logger.fine("(I) Exec");
+//            Logger.fine("(I) Exec");
 
             if (similarity > 1.0 - similarityThreshold && (Math.abs((Math.abs(topLeft.distance(topRight) / topLeft.distance(bottomLeft)) + Math.abs(bottomLeft.distance(bottomRight) / topRight.distance(bottomRight)) / 2.0f) - goalAspectRatio) < goalAspectRatioThreshold)) {
                 goals.add(new Goal(topLeft, topRight, bottomRight, bottomLeft, shape));
             }
-            Logger.fine("(J) Finish " + shape);
+//            Logger.fine("(J) Finish " + shape);
         }
         
-        Logger.fine("(K) Done");
+//        Logger.fine("(K) Done");
 
         return goals;
     }

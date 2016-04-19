@@ -31,9 +31,10 @@ public class Deployment {
      * class of your project, make sure to change this line.
      */
     public static final Class<? extends FRCApplication> robotMain = org.team1540.zukoazula.ZukoAzula.class;
+    public static final Class<?> kangarooMain = org.team1540.kangaroo.KangarooServer.class;
 
     private static Artifact build() throws IOException {
-        Artifact viewko = DepJava.build(DepProject.directory("../Viewko/src"), new File(DepProject.ccreProject("CommonChickenRuntimeEngine"), "CCRE.jar"));
+        Artifact viewko = DepKangaroo.build();
         Artifact newcode = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THICK), viewko.toJar(false).toFile());
         return DepJar.combine(DepRoboRIO.manifest(robotMain), JarBuilder.DELETE, newcode, DepRoboRIO.getJar(DepRoboRIO.LIBS_THIN), viewko);
     }
@@ -116,5 +117,15 @@ public class Deployment {
                 }
             }
         });
+    }
+
+    @DepTask
+    public static void deployKangaroo() throws Exception {
+        Artifact result = DepKangaroo.build();
+
+        try (DepKangaroo.KangarooShell shell = DepKangaroo.connectAndVerify("10.15.40.14")) {
+            shell.archiveLogsTo(DepProject.root());
+            shell.downloadAndStart(result);
+        }
     }
 }
