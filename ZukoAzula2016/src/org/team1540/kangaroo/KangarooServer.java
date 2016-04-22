@@ -37,7 +37,7 @@ public class KangarooServer {
     });
 
     public static void main(String[] args) {
-        CluckTCPClient client = new CluckTCPClient("roboRIO-1540-frc.local", 4003, node, "robot", "kangaroo");
+        CluckTCPClient client = new CluckTCPClient("roboRIO-1540-frc.local", node, "robot", "kangaroo");
         CluckTCPServer server = new CluckTCPServer(node, 4002);
         server.start();
         client.start();

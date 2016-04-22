@@ -25,7 +25,8 @@ import ccre.log.Logger;
 public class DepKangaroo {
     private static final String DEFAULT_USERNAME = "robotics";
     private static final String DEFAULT_PASSWORD = "robotics1540";
-
+    private static final String JAR_LOCATION = "/home/robotics/Kangaroo.jar";
+    
     private static final Random random = new Random();
 
     public static DepKangaroo connect(String address) throws UnknownHostException {
@@ -92,7 +93,7 @@ public class DepKangaroo {
 
         public void downloadCode(File jar) throws IOException {
             Logger.info("Starting deployment...");
-            sendFileTo(jar, "/home/robotics/Viewko.jar");
+            sendFileTo(jar, JAR_LOCATION);
             Logger.info("Download complete.");
         }
 
@@ -101,7 +102,7 @@ public class DepKangaroo {
         }
 
         public void startRobot() throws IOException {
-            execCheck("java -jar /home/robotics/Viewko.jar");
+            execCheck("/usr/bin/java -jar " + JAR_LOCATION);
         }
 
         public void downloadAndStart(File code) throws IOException {
@@ -115,7 +116,9 @@ public class DepKangaroo {
         }
     }
 
-    public static Artifact build() throws IOException {
-        return DepJava.build(DepProject.directory("../Viewko/src"), new File(DepProject.ccreProject("CommonChickenRuntimeEngine"), "CCRE.jar"));
+    public static Artifact build(Class<?> main) throws IOException {
+        Artifact output = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THICK));
+        Manifest manifest = DepJar.manifest("Main-Class", main.getName());
+        return DepJar.combine(manifest, JarBuilder.DELETE, output, DepRoboRIO.getJar(DepRoboRIO.LIBS_THIN));
     }
 }

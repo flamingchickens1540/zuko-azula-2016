@@ -13,7 +13,7 @@ import ccre.frc.FRC;
 
 public class Kangaroo {
     public static final CluckNode node = new CluckNode();
-    public static final CluckTCPClient client = new CluckTCPClient("10.15.40.14", 4002, node, "kangaroo", "robot");
+    public static final CluckTCPClient client = new CluckTCPClient("10.15.40.14", node, "kangaroo", "robot");
     public static final CluckTCPServer server = new CluckTCPServer(node, 4003);
     
     public static FloatInput targetGyro = CluckPublisher.subscribeFI(node, "kangaroo/gyroTarget", true);
