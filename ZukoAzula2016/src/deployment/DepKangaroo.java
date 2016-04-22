@@ -45,19 +45,7 @@ public class DepKangaroo {
 
     public static KangarooShell connectAndVerify(String address) throws IOException {
         DepKangaroo kangaroo = connect(address);
-        KangarooShell shell = kangaroo.openShell();
-        try {
-            shell.verifyKangaroo();
-            return shell;
-        } catch (Throwable thr) {
-            try {
-                shell.close();
-            } catch (IOException ex) {
-                thr.addSuppressed(ex);
-            }
-            throw thr;
-        }
-
+        return kangaroo.openShell();
     }
 
     private final InetAddress ip;
@@ -85,12 +73,6 @@ public class DepKangaroo {
             }
         }
 
-        public void verifyKangaroo() throws IOException {
-            if (exec("test -d /usr/bin/java") != 0) {
-                throw new RuntimeException("JRE not installed!");
-            }
-        }
-
         public void downloadCode(File jar) throws IOException {
             Logger.info("Starting deployment...");
             sendFileTo(jar, JAR_LOCATION);
@@ -102,7 +84,7 @@ public class DepKangaroo {
         }
 
         public void startRobot() throws IOException {
-            execCheck("/usr/bin/java -jar " + JAR_LOCATION);
+            execCheck("java -jar " + JAR_LOCATION);
         }
 
         public void downloadAndStart(File code) throws IOException {
@@ -117,8 +99,9 @@ public class DepKangaroo {
     }
 
     public static Artifact build(Class<?> main) throws IOException {
-        Artifact output = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THICK));
+        Artifact viewko = DepJava.build(DepProject.directory("../Viewko/src"), new File(DepProject.ccreProject("CommonChickenRuntimeEngine"), "CCRE.jar"));
+        Artifact output = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THICK), viewko.toJar(false).toFile());
         Manifest manifest = DepJar.manifest("Main-Class", main.getName());
-        return DepJar.combine(manifest, JarBuilder.DELETE, output, DepRoboRIO.getJar(DepRoboRIO.LIBS_THIN));
+        return DepJar.combine(manifest, JarBuilder.DELETE, output, DepRoboRIO.getJar(DepRoboRIO.LIBS_THIN), viewko);
     }
 }
