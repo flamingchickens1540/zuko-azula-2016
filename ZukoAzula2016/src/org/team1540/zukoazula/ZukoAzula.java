@@ -44,6 +44,7 @@ public class ZukoAzula implements FRCApplication {
         HeadingSensor.setup();
         VisionConstants.setup();
         Kangaroo.setup();
+        KangarooTargeting.setup();
         Autonomous.setup();
 
         Cluck.publishRConf("Diagnostics", new RConfable() {

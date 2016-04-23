@@ -63,6 +63,10 @@ public abstract class AutonomousBase extends InstinctModeModule {
         waitSeconds(seconds);
         allMotors.set(0);
     }
+    
+    protected void driveVelocity(float velocity) {
+        allMotors.set(velocity);
+    }
 
     protected void driveDistance(float feet, float speed, boolean adjust) throws AutonomousModeOverException, InterruptedException {
         float ticks = feet * DriveCode.ticksPerFoot.get();

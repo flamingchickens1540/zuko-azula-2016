@@ -12,13 +12,13 @@ import ccre.instinct.AutonomousModeOverException;
 import ccre.log.Logger;
 
 public class AutonomousModeHighGoal extends AutonomousBaseKangaroo {
-
-    public AutonomousModeHighGoal() {
-        super("Drive and Shoot");
-    }
-
-    @Override
-    protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
-        runKangarooAutonomous();
-    }
+//
+//    public AutonomousModeHighGoal() {
+//        super("Drive and Shoot");
+//    }
+//
+//    @Override
+//    protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
+//        runKangarooAutonomous();
+//    }
 }
