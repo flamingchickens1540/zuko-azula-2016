@@ -15,10 +15,13 @@ public class KangarooGoalClient {
     public final BooleanCell enabled = new BooleanCell(false);
     
     public KangarooGoalClient(String name) {
-        centerX = Cluck.subscribeFI("kangaroo/"+name+"CenterX", true);
-        centerY = Cluck.subscribeFI("kangaroo/"+name+"CenterY", true);
-        hasTarget = Cluck.subscribeBI("kangaroo/"+name+"HasTarget", true);
+        centerX = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/"+name+"CenterX", true);
+        centerY = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/"+name+"CenterY", true);
+        hasTarget = CluckPublisher.subscribeBI(Kangaroo.node, "kangaroo/"+name+"HasTarget", true);
         CluckPublisher.publish(Kangaroo.node, name+"Enabled", enabled.asInput());
+        
+        Cluck.publish("Kangaroo "+name+"Enabled", enabled.asInput());
+        Cluck.publish("Kangaroo "+name+"HasTarget", hasTarget);
     }
     
     public void enable() {

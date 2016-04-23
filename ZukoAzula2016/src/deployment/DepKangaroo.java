@@ -84,7 +84,7 @@ public class DepKangaroo {
         }
 
         public void startRobot() throws IOException {
-            execCheck("java -jar " + JAR_LOCATION);
+            //execCheck("java -jar " + JAR_LOCATION + " -cp org.team1540.kangaroo.KangarooServer &");
         }
 
         public void downloadAndStart(File code) throws IOException {
@@ -102,6 +102,6 @@ public class DepKangaroo {
         Artifact viewko = DepJava.build(DepProject.directory("../Viewko/src"), new File(DepProject.ccreProject("CommonChickenRuntimeEngine"), "CCRE.jar"));
         Artifact output = DepJava.build(DepProject.directory("src"), DepRoboRIO.getJarFile(DepRoboRIO.LIBS_THICK), viewko.toJar(false).toFile());
         Manifest manifest = DepJar.manifest("Main-Class", main.getName());
-        return DepJar.combine(manifest, JarBuilder.DELETE, output, DepRoboRIO.getJar(DepRoboRIO.LIBS_THIN), viewko);
+        return DepJar.combine(manifest, JarBuilder.DELETE, output, DepRoboRIO.getJar(DepRoboRIO.LIBS_THICK), viewko);
     }
 }

@@ -17,12 +17,6 @@ import ccre.cluck.tcp.CluckTCPServer;
 import ccre.log.Logger;
 
 public class KangarooGoalServer {
-    public static CluckTCPServer server;
-
-    public static void setup() {
-        server = Cluck.setupServer();
-    }
-
     private volatile BufferedImage image;
     private volatile BufferedImage swap;
     private final Object swapLock = new Object();
@@ -51,8 +45,12 @@ public class KangarooGoalServer {
 
     public KangarooGoalServer(String ip, BooleanInput enabled, FloatOutput cameraCenterX, FloatOutput cameraCenterY, BooleanOutput hasTarget) {
         webcamAddress = ip;
-        enabled.onPress().send(processingThread::notify);
-        
+        enabled.onPress().send(() -> {
+            synchronized (processingLock) {
+                processingLock.notify();
+            }
+        });
+
         this.enabled = enabled;
         this.cameraCenterX = cameraCenterX;
         this.cameraCenterY = cameraCenterY;
@@ -77,11 +75,13 @@ public class KangarooGoalServer {
 
     private void processingThreadMethod() {
         while (!stopped) {
-            try {
-                if (!enabled.get()) {
-                    processingLock.wait();
+            synchronized (processingLock) {
+                while (!enabled.get()) {
+                    try {
+                        processingLock.wait();
+                    } catch (InterruptedException e) {
+                    }
                 }
-            } catch (InterruptedException e) {
             }
 
             try {
@@ -111,8 +111,8 @@ public class KangarooGoalServer {
             if (target != null) {
                 float goalCenterX = (target.ll.x + target.lr.x + target.ur.x + target.ul.x) / (2.0f * target.shape.getWidth());
                 float goalCenterY = (target.ll.y + target.lr.y + target.ur.y + target.ul.y) / (2.0f * target.shape.getHeight());
-                cameraCenterX.set(goalCenterX);
-                cameraCenterY.set(goalCenterY);
+                cameraCenterX.set(goalCenterX-1.0f);
+                cameraCenterY.set(goalCenterY-1.0f);
             }
         }
 

@@ -12,6 +12,11 @@ import ccre.instinct.AutonomousModeOverException;
 import ccre.log.Logger;
 
 public class AutonomousModeHighGoal extends AutonomousBaseKangaroo {
+
+    public AutonomousModeHighGoal(String modeName) {
+        super(modeName);
+        // TODO Auto-generated constructor stub
+    }
 //
 //    public AutonomousModeHighGoal() {
 //        super("Drive and Shoot");
@@ -21,4 +26,10 @@ public class AutonomousModeHighGoal extends AutonomousBaseKangaroo {
 //    protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
 //        runKangarooAutonomous();
 //    }
+
+    @Override
+    protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
+        // TODO Auto-generated method stub
+        
+    }
 }

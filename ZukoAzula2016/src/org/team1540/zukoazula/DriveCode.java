@@ -39,8 +39,9 @@ public class DriveCode {
     private static final FloatInput feetPerSecond = ticksPerSecond.dividedBy(ticksPerFoot);
 
     private static final BehaviorArbitrator behaviors = new BehaviorArbitrator("Behaviors");
-    private static final Behavior autonomous = behaviors.addBehavior("Autonomous", FRC.inAutonomousMode());
-    private static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode());
+    private static final Behavior autonomous = behaviors.addBehavior("Autonomous", FRC.inAutonomousMode().andNot(KangarooTargeting.autoAlign));
+    private static final Behavior teleop = behaviors.addBehavior("Teleop", FRC.inTeleopMode().andNot(KangarooTargeting.autoAlign));
+    private static final Behavior targeting = behaviors.addBehavior("Targeting", FRC.inTeleopMode().or(FRC.inAutonomousMode()).and(KangarooTargeting.autoAlign));
     private static final BooleanCell pitModeEnable = new BooleanCell();
     private static final Behavior pit = behaviors.addBehavior("Pit Mode", pitModeEnable.andNot(FRC.isOnFMS()));
     private static final Behavior challenge = behaviors.addBehavior("Challenge Brake", ChallengeBrake.driveBrake);
@@ -90,7 +91,9 @@ public class DriveCode {
         rightInput.attach(pit, FloatInput.zero);
         leftInput.attach(challenge, FloatInput.zero);
         rightInput.attach(challenge, FloatInput.zero);
-
+        leftInput.attach(targeting, KangarooTargeting.leftMotor);
+        rightInput.attach(targeting, KangarooTargeting.rightMotor);
+        
         FloatOutput leftMotors = PowerManager.managePower(2, FloatOutput.combine(SelfTest.wrapDrive(leftCANs, FRC.MOTOR_FORWARD, false)));
         FloatOutput rightMotors = PowerManager.managePower(2, FloatOutput.combine(SelfTest.wrapDrive(rightCANs, FRC.MOTOR_REVERSE, true)));
 

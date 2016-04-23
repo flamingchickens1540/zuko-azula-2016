@@ -36,15 +36,15 @@ public class ZukoAzula implements FRCApplication {
         Logger.info("🐣 CHEEP CHEEP 🐣");
         // Instrumentation.setup();
 
+        HeadingSensor.setup();
+        KangarooTargeting.setup();
         DriveCode.setup();
         Shooter.setup();
         Portcullis.setup();
         IntakeArm.setup();
         ChallengeBrake.setup();
-        HeadingSensor.setup();
         VisionConstants.setup();
         Kangaroo.setup();
-        KangarooTargeting.setup();
         Autonomous.setup();
 
         Cluck.publishRConf("Diagnostics", new RConfable() {
