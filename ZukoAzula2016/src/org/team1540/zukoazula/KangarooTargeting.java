@@ -43,8 +43,8 @@ public class KangarooTargeting {
         
     public static void setup() {
         controlSelector.onExitState("none").send(() -> {
-            forwardPidController.reset();
-            rotationalPidController.reset();
+            forwardPidController.integralTotal.set(0);
+            rotationalPidController.integralTotal.set(0);
         });
         
         controlSelector.selectByState(FloatInput.zero, forwardPidController, rotationalPidController)
