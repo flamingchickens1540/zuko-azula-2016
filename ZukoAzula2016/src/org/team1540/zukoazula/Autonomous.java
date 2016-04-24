@@ -33,7 +33,7 @@ public class Autonomous {
         mainModule.addMode(new AutonomousModeRoughTerrain());
         mainModule.addMode(new AutonomousModeRoughTerrainShoot());
         mainModule.addMode(new AutonomousModePortcullis()); // Untested
-//        mainModule.addMode(new AutonomousModeHighGoal());
+        mainModule.addMode(new AutonomousModeHighGoal());
         mainModule.loadSettings(mainModule.addNullMode("none", "I'm a sitting chicken!"));
         Cluck.publish("(TEST) SPIKE CUR", DriveCode.maximumCurrent);
         ExpirationTimer spikeChecker = new ExpirationTimer();

@@ -2,6 +2,7 @@ package org.team1540.zukoazula;
 
 import org.team1540.kangaroo.KangarooGoalClient;
 
+import ccre.channel.FloatInput;
 import ccre.cluck.Cluck;
 import ccre.cluck.CluckNode;
 import ccre.cluck.CluckPublisher;
@@ -13,7 +14,7 @@ public class Kangaroo {
 
     public static final KangarooGoalClient forwardCamera = new KangarooGoalClient("forwardCamera");
     public static final KangarooGoalClient upwardCamera = new KangarooGoalClient("upwardCamera");
-
+    
     public static void setup() {
         client.start();
         CluckPublisher.publish(node, "Vision Target Red", VisionConstants.targetRed);
@@ -26,11 +27,13 @@ public class Kangaroo {
         CluckPublisher.publish(node, "Vision Similarity Threshold", VisionConstants.similarityThreshold);
         CluckPublisher.publish(node, "Vision Goal Aspect Ratio", VisionConstants.aspectRatio);
         CluckPublisher.publish(node, "Vision Goal Aspect Ratio Threshold", VisionConstants.aspectRatioThreshold);
+        
+        CluckPublisher.publish(node, "currentGyro", HeadingSensor.absoluteYaw);
 
-        Cluck.publish("Kangaroo Foward Camera X", forwardCamera.centerX);
-        Cluck.publish("Kangaroo Foward Camera Y", forwardCamera.centerY);
-        Cluck.publish("Kangaroo Foward Camera Has Target", forwardCamera.hasTarget);
-        Cluck.publish("Kangaroo Foward Camera Enabled", forwardCamera.enabled);
+        Cluck.publish("Kangaroo Forward Camera X", forwardCamera.centerX);
+        Cluck.publish("Kangaroo Forward Camera Y", forwardCamera.centerY);
+        Cluck.publish("Kangaroo Forward Camera Has Target", forwardCamera.hasTarget);
+        Cluck.publish("Kangaroo Forward Camera Enabled", forwardCamera.enabled);
 
         Cluck.publish("Kangaroo Upward Camera X", upwardCamera.centerX);
         Cluck.publish("Kangaroo Upward Camera Y", upwardCamera.centerY);

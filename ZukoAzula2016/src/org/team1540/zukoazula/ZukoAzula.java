@@ -37,7 +37,7 @@ public class ZukoAzula implements FRCApplication {
         // Instrumentation.setup();
 
         HeadingSensor.setup();
-        KangarooTargeting.setup();
+//        KangarooTargeting.setup();
         DriveCode.setup();
         Shooter.setup();
         Portcullis.setup();

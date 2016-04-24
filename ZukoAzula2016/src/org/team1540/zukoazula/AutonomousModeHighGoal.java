@@ -17,19 +17,13 @@ public class AutonomousModeHighGoal extends AutonomousBaseKangaroo {
         super(modeName);
         // TODO Auto-generated constructor stub
     }
-//
-//    public AutonomousModeHighGoal() {
-//        super("Drive and Shoot");
-//    }
-//
-//    @Override
-//    protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
-//        runKangarooAutonomous();
-//    }
+
+    public AutonomousModeHighGoal() {
+        super("Drive and Shoot");
+    }
 
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
-        // TODO Auto-generated method stub
-        
+        runKangarooAutonomous();
     }
 }

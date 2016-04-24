@@ -28,6 +28,7 @@ public class KangarooGoalServer {
     private BooleanInput enabled;
     private FloatOutput cameraCenterX;
     private FloatOutput cameraCenterY;
+    private FloatOutput lastGyro;
     private BooleanOutput hasTarget;
     private boolean stopped = false;
 
@@ -43,7 +44,7 @@ public class KangarooGoalServer {
         }
     });
 
-    public KangarooGoalServer(String ip, BooleanInput enabled, FloatOutput cameraCenterX, FloatOutput cameraCenterY, BooleanOutput hasTarget) {
+    public KangarooGoalServer(String ip, BooleanInput enabled, FloatOutput cameraCenterX, FloatOutput cameraCenterY, BooleanOutput hasTarget, FloatOutput lastGyro) {
         webcamAddress = ip;
         enabled.onPress().send(() -> {
             synchronized (processingLock) {
@@ -55,6 +56,7 @@ public class KangarooGoalServer {
         this.cameraCenterX = cameraCenterX;
         this.cameraCenterY = cameraCenterY;
         this.hasTarget = hasTarget;
+        this.lastGyro = lastGyro;
     }
 
     public void start() {
@@ -78,6 +80,7 @@ public class KangarooGoalServer {
             synchronized (processingLock) {
                 while (!enabled.get()) {
                     try {
+                        hasTarget.set(false);
                         processingLock.wait();
                     } catch (InterruptedException e) {
                     }
@@ -113,6 +116,7 @@ public class KangarooGoalServer {
                 float goalCenterY = (target.ll.y + target.lr.y + target.ur.y + target.ul.y) / (2.0f * target.shape.getHeight());
                 cameraCenterX.set(goalCenterX-1.0f);
                 cameraCenterY.set(goalCenterY-1.0f);
+                lastGyro.set(KangarooServer.currentGyro.get());
             }
         }
 
