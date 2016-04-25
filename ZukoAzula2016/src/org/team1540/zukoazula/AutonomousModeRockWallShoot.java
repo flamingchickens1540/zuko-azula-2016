@@ -4,7 +4,7 @@ import ccre.channel.FloatInput;
 import ccre.cluck.Cluck;
 import ccre.instinct.AutonomousModeOverException;
 
-public class AutonomousModeRockWallShoot extends AutonomousBaseHighGoal {
+public class AutonomousModeRockWallShoot extends AutonomousBaseKangaroo {
 
     @Tunable(10f)
     private FloatInput desiredPitch;
@@ -28,6 +28,6 @@ public class AutonomousModeRockWallShoot extends AutonomousBaseHighGoal {
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
         driveForTime(afterTime.get(), drivingSpeed.get());
         turnAngle(startAngle - HeadingSensor.absoluteYaw.get() - 45, true);
-        runVisionAutonomous();
+        runKangarooAutonomous();
     }
 }

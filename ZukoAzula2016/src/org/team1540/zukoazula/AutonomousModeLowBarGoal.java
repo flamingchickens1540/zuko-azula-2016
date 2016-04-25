@@ -3,7 +3,7 @@ package org.team1540.zukoazula;
 import ccre.channel.FloatInput;
 import ccre.instinct.AutonomousModeOverException;
 
-public class AutonomousModeLowBarGoal extends AutonomousBaseHighGoal {
+public class AutonomousModeLowBarGoal extends AutonomousBaseKangaroo {
 
     @Tunable(3f)
     private FloatInput time;
@@ -26,6 +26,6 @@ public class AutonomousModeLowBarGoal extends AutonomousBaseHighGoal {
         arcAngle(startAngle - HeadingSensor.absoluteYaw.get() + 30, true);
         //turnForTime(0.3f, 1f);
         setIntakeArm(0);
-        runVisionAutonomous();
+        runKangarooAutonomous();
     }
 }
