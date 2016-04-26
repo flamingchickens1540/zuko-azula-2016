@@ -15,10 +15,10 @@ public abstract class AutonomousBaseKangaroo extends AutonomousBase {
     // TODO: set the following four FloatInputs to either the default (as it is now) or what is selected by the box
     // on PoultryInspector, depending on a switch that can be set on PoultryInspector. If the box does not exist, make
     // sure it is set to the default.
-    public FloatInput forwardForwardTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Forward Target", -0.8f);
+    public FloatInput forwardForwardTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Forward Target", -0.7f);
     public FloatInput forwardRotationalTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Rotational Target", 0.0f);
-    public FloatInput upwardForwardTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Forward Target", 0.2f);
-    public FloatInput upwardRotationalTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Rotational Target", 0.0f);
+    public FloatInput upwardForwardTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Forward Target", 0.18f);
+    public FloatInput upwardRotationalTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Rotational Target", 0.05f);
     
     public FloatInput forwardPixelToGyro = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Pixel to Gyro", 0.181f*160.f);
     public FloatInput upwardPixelToGyro = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Pixel to Gyro", 0.181f*160.f);
@@ -26,21 +26,25 @@ public abstract class AutonomousBaseKangaroo extends AutonomousBase {
     public FloatInput forwardP = ZukoAzula.mainTuning.getFloat("Kangaroo Forward P", 0.25f);
     public FloatInput forwardI = ZukoAzula.mainTuning.getFloat("Kangaroo Forward I", 0.01f);
     public FloatInput forwardD = ZukoAzula.mainTuning.getFloat("Kangaroo Forward D", 0.01f);
-    
+
     public FloatInput rotationalP = ZukoAzula.mainTuning.getFloat("Kangaroo Rotational P", 0.02f);
     public FloatInput rotationalI = ZukoAzula.mainTuning.getFloat("Kangaroo Rotational I", 0.01f);
     public FloatInput rotationalD = ZukoAzula.mainTuning.getFloat("Kangaroo Rotational D", 0.01f);
+    
+    public FloatInput forwardRotationalThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Rotational Threshold", 5.0f);
+    public FloatInput upwardRotationalThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Rotational Threshold", 2.0f);
 
     public StateMachine controlSelector = new StateMachine("none", "none", "forward", "upward");
     
     public BooleanInput rotationallyAligned = controlSelector
-            .selectByState(BooleanInput.alwaysFalse, Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro).absolute().atMost(3.0f),
-                    Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro).absolute().atMost(3.0f));
+            .selectByState(BooleanInput.alwaysFalse, 
+                    Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro).absolute().atMost(3.0f).and(Kangaroo.forwardCamera.hasTarget),
+                    Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro).absolute().atMost(3.0f).and(Kangaroo.upwardCamera.hasTarget));
     
     public BooleanInput horizontallyAligned = controlSelector
             .selectByState(BooleanInput.alwaysFalse, 
-                    Kangaroo.forwardCamera.centerY.minus(forwardForwardTarget).absolute().atMost(0.06f),
-                    Kangaroo.forwardCamera.centerY.minus(upwardForwardTarget).absolute().atMost(0.06f));
+                    Kangaroo.forwardCamera.centerY.plus(forwardForwardTarget).absolute().atMost(0.06f).and(Kangaroo.forwardCamera.hasTarget), // plus is intentional, camera y is reversed
+                    Kangaroo.forwardCamera.centerY.plus(upwardForwardTarget).absolute().atMost(0.06f)).and(Kangaroo.upwardCamera.hasTarget);
     
     public PIDController forwardPidController = new PIDController(controlSelector.selectByState(FloatInput.zero, Kangaroo.forwardCamera.centerY, Kangaroo.upwardCamera.centerY), 
             rotationallyAligned.toFloat(controlSelector.selectByState(FloatInput.zero, Kangaroo.forwardCamera.centerY, Kangaroo.upwardCamera.centerY),
@@ -64,7 +68,8 @@ public abstract class AutonomousBaseKangaroo extends AutonomousBase {
         Cluck.publish("Kangaroo Rotational PID", rotationalPidController.plus(0.0f));
         Cluck.publish("Kangaroo Forward PID", forwardPidController.plus(0.0f));
         
-        Cluck.publish("Kangaroo Rotational Target", Kangaroo.upwardCamera.centerX.multipliedBy(upwardPixelToGyro).plus(upwardRotationalTarget));
+        Cluck.publish("Kangaroo Upward Rotational Gyro Target", Kangaroo.forwardCamera.lastGyro.plus(Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro)));
+        Cluck.publish("Kangaroo Forward Rotational Gyro Target", Kangaroo.upwardCamera.lastGyro.plus(Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro)));
         Cluck.publish("Kangaroo Upward Forward Aligned", horizontallyAligned);
         Cluck.publish("Kangaroo Upward Rotational Aligned", rotationallyAligned);
     }
