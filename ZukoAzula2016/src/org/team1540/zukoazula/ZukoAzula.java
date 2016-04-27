@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import ccre.channel.BooleanInput;
 import ccre.channel.BooleanOutput;
 import ccre.channel.EventInput;
 import ccre.channel.EventOutput;
@@ -38,7 +39,8 @@ public class ZukoAzula implements FRCApplication {
 
         VisionConstants.setup();
         HeadingSensor.setup();
-//        KangarooTargeting.setup();
+        Kangaroo.setup();
+        KangarooTargeting.setup();
         DriveCode.setup();
         Shooter.setup();
         Portcullis.setup();
@@ -124,5 +126,15 @@ public class ZukoAzula implements FRCApplication {
             }
         };
         update.setWhen(FRC.inAutonomousMode(), hundred);
+    }
+    
+    public static EventOutput split(BooleanInput cond, EventOutput t, EventOutput f) {
+        return () -> {
+            if (cond.get()) {
+                t.event();
+            } else {
+                f.event();
+            }
+        };
     }
 }

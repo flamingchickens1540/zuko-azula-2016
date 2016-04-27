@@ -26,16 +26,6 @@ public class Shooter {
     public static BooleanInput upToSpeed;
     public static BooleanInput shouldLowerArm;
 
-    private static EventOutput split(BooleanInput cond, EventOutput t, EventOutput f) {
-        return () -> {
-            if (cond.get()) {
-                t.event();
-            } else {
-                f.event();
-            }
-        };
-    }
-
     public static void setup() throws ExtendedMotorFailureException {
         StateMachine shooterStates = new StateMachine(0,
                 "passive", // do nothing
@@ -91,11 +81,11 @@ public class Shooter {
         BooleanInput fireButton = ZukoAzula.controlBinding.addBoolean("Shooter Fire");
         BooleanInput cancelShooterButton = ZukoAzula.controlBinding.addBoolean("Shooter Cancel Action");
 
-        intakeButton.onPress(split(shooterStates.getIsState("intaking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("intaking")));
-        ejectButton.onPress(split(shooterStates.getIsState("ejecting"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("ejecting")));
-        cockAndSpinButton.onPress(split(shooterStates.getIsState("cocking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("cocking")));
+        intakeButton.onPress(ZukoAzula.split(shooterStates.getIsState("intaking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("intaking")));
+        ejectButton.onPress(ZukoAzula.split(shooterStates.getIsState("ejecting"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("ejecting")));
+        cockAndSpinButton.onPress(ZukoAzula.split(shooterStates.getIsState("cocking"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("cocking")));
         upToSpeed = flywheelTalon.speed.atLeast(flywheelHighSpeed.minus(ZukoAzula.mainTuning.getFloat("Shooter Flywheel Minimum High Speed Rel", 100.0f)));
-        fireButton.and(upToSpeed).onPress(split(shooterStates.getIsState("firing"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("firing")));
+        fireButton.and(upToSpeed).onPress(ZukoAzula.split(shooterStates.getIsState("firing"), shooterStates.getStateSetEvent("passive"), shooterStates.getStateSetEvent("firing")));
 
         autonomousStop.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("passive"));
         autonomousIntake.and(FRC.inAutonomousMode()).send(shooterStates.getStateSetEvent("intaking"));
