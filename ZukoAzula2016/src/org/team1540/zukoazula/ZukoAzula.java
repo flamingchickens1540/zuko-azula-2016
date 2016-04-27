@@ -36,6 +36,7 @@ public class ZukoAzula implements FRCApplication {
         Logger.info("🐣 CHEEP CHEEP 🐣");
         // Instrumentation.setup();
 
+        VisionConstants.setup();
         HeadingSensor.setup();
 //        KangarooTargeting.setup();
         DriveCode.setup();
@@ -43,7 +44,6 @@ public class ZukoAzula implements FRCApplication {
         Portcullis.setup();
         IntakeArm.setup();
         ChallengeBrake.setup();
-        VisionConstants.setup();
         Kangaroo.setup();
         Autonomous.setup();
 

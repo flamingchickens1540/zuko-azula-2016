@@ -12,8 +12,10 @@ import ccre.time.Time;
 
 public abstract class AutonomousBaseKangaroo extends AutonomousBase {
 
-    // TODO: set the following four FloatInputs to either the default (as it is now) or what is selected by the box
-    // on PoultryInspector, depending on a switch that can be set on PoultryInspector. If the box does not exist, make
+    // TODO: set the following four FloatInputs to either the default (as it is
+    // now) or what is selected by the box
+    // on PoultryInspector, depending on a switch that can be set on
+    // PoultryInspector. If the box does not exist, make
     // sure it is set to the default.
     public FloatInput forwardForwardTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Forward Target", -0.7f);
     public FloatInput forwardRotationalTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Rotational Target", 0.0f);
@@ -61,79 +63,82 @@ public abstract class AutonomousBaseKangaroo extends AutonomousBase {
     
     public AutonomousBaseKangaroo(String modeName) {
         super(modeName);
-        
+
         rotationalPidController.updateWhen(FRC.duringAuto.and(Kangaroo.upwardCamera.hasTarget.or(Kangaroo.forwardCamera.hasTarget)));
         forwardPidController.updateWhen(FRC.duringAuto.and(Kangaroo.upwardCamera.hasTarget.or(Kangaroo.forwardCamera.hasTarget)));
-        
+
         Cluck.publish("Kangaroo Rotational PID", rotationalPidController.plus(0.0f));
         Cluck.publish("Kangaroo Forward PID", forwardPidController.plus(0.0f));
-        
         Cluck.publish("Kangaroo Upward Rotational Gyro Target", Kangaroo.forwardCamera.lastGyro.plus(Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro)));
         Cluck.publish("Kangaroo Forward Rotational Gyro Target", Kangaroo.upwardCamera.lastGyro.plus(Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro)));
+
         Cluck.publish("Kangaroo Upward Forward Aligned", horizontallyAligned);
         Cluck.publish("Kangaroo Upward Rotational Aligned", rotationallyAligned);
     }
-    
-    public void runKangarooAutonomous() throws InterruptedException, AutonomousModeOverException {    
+
+    public void runKangarooAutonomous() throws InterruptedException, AutonomousModeOverException {
         Kangaroo.upwardCamera.enabled.set(true);
         Kangaroo.forwardCamera.enabled.set(true);
-        
-        rotationalPidController.integralTotal.set(0);
-        forwardPidController.integralTotal.set(0);
-        
-        while (!Kangaroo.node.hasLink("kangaroo")) {
-            waitForTime(20);
-        }
-        
-        long currentTime = System.nanoTime();
-        long elapsedTime = 0;
-        while (FRC.inAutonomousMode().get()) {            
-            if (Kangaroo.upwardCamera.hasTarget.get()) {
-                if (!controlSelector.getIsState("upward").get()) {
-                    rotationalPidController.integralTotal.set(0);
-                    forwardPidController.integralTotal.set(0);
-                    controlSelector.setState("upward");
-                }
-            } else if (Kangaroo.forwardCamera.hasTarget.get()) {
-                if (!controlSelector.getIsState("forward").get()) {
-                    rotationalPidController.integralTotal.set(0);
-                    forwardPidController.integralTotal.set(0);
-                    controlSelector.setState("forward");
-                }
-            } else {
-                controlSelector.setState("none");
-                driveVelocity(0.0f);
-                turnVelocity(0.4f);
+
+        try {
+            rotationalPidController.integralTotal.set(0);
+            forwardPidController.integralTotal.set(0);
+
+            while (!Cluck.getNode().hasLink("kangaroo")) {
+                waitForTime(20);
             }
-            
-            if (!controlSelector.getIsState("none").get()) {
-                if (!rotationallyAligned.get()) {
-                    driveVelocity(0.0f);
-                    turnVelocity(rotationalPidController.get());
-                    elapsedTime = 0;
-                } else if (!horizontallyAligned.get()) {
-                    turnVelocity(0.0f);
-                    driveVelocity(-forwardPidController.get());
-                    elapsedTime = 0;
-                } else if (controlSelector.getIsState("upward").get()){
-                    elapsedTime += System.nanoTime() - currentTime;
-                    
-                    turnVelocity(0.0f);
-                    driveVelocity(0.0f);
-                                        
-                    currentTime = System.nanoTime(); 
-                    
-                    if (elapsedTime > 1.0*Time.NANOSECONDS_PER_SECOND) {
-                        fire(4.0f);
-                        break;
+
+            long currentTime = System.nanoTime();
+            long elapsedTime = 0;
+            while (FRC.inAutonomousMode().get()) {
+                if (Kangaroo.upwardCamera.hasTarget.get()) {
+                    if (!controlSelector.getIsState("upward").get()) {
+                        rotationalPidController.integralTotal.set(0);
+                        forwardPidController.integralTotal.set(0);
+                        controlSelector.setState("upward");
+                    }
+                } else if (Kangaroo.forwardCamera.hasTarget.get()) {
+                    if (!controlSelector.getIsState("forward").get()) {
+                        rotationalPidController.integralTotal.set(0);
+                        forwardPidController.integralTotal.set(0);
+                        controlSelector.setState("forward");
                     }
                 } else {
-                    elapsedTime = 0;
+                    controlSelector.setState("none");
+                    driveVelocity(0.0f);
+                    turnVelocity(0.4f);
+                }
+
+                if (!controlSelector.getIsState("none").get()) {
+                    if (!rotationallyAligned.get()) {
+                        driveVelocity(0.0f);
+                        turnVelocity(rotationalPidController.get());
+                        elapsedTime = 0;
+                    } else if (!horizontallyAligned.get()) {
+                        turnVelocity(0.0f);
+                        driveVelocity(-forwardPidController.get());
+                        elapsedTime = 0;
+                    } else if (controlSelector.getIsState("upward").get()) {
+                        elapsedTime += System.nanoTime() - currentTime;
+
+                        turnVelocity(0.0f);
+                        driveVelocity(0.0f);
+
+                        currentTime = System.nanoTime();
+
+                        if (elapsedTime > 1.0 * Time.NANOSECONDS_PER_SECOND) {
+                            fire(4.0f);
+                            break;
+                        }
+                    } else {
+                        elapsedTime = 0;
+                    }
                 }
             }
+
+        } finally {
+            Kangaroo.upwardCamera.enabled.set(false);
+            Kangaroo.forwardCamera.enabled.set(false);
         }
-        
-        Kangaroo.upwardCamera.enabled.set(false);
-        Kangaroo.forwardCamera.enabled.set(false);
     }
 }

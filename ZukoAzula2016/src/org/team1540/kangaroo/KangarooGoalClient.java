@@ -14,22 +14,22 @@ public class KangarooGoalClient {
     public final BooleanInput hasTarget;
     public final BooleanCell enabled = new BooleanCell(false);
     public final FloatInput lastGyro;
-    
+
     public KangarooGoalClient(String name) {
-        centerX = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/"+name+"CenterX", true);
-        centerY = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/"+name+"CenterY", true);
-        hasTarget = CluckPublisher.subscribeBI(Kangaroo.node, "kangaroo/"+name+"HasTarget", true);
-        lastGyro = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/"+name+"LastGyro", true);
-        CluckPublisher.publish(Kangaroo.node, name+"Enabled", enabled.asInput());
-        
-        Cluck.publish("Kangaroo "+name+"Enabled", enabled.asInput());
-        Cluck.publish("Kangaroo "+name+"HasTarget", hasTarget);
+        centerX = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/" + name + "CenterX", true);
+        centerY = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/" + name + "CenterY", true);
+        hasTarget = CluckPublisher.subscribeBI(Kangaroo.node, "kangaroo/" + name + "HasTarget", true);
+        lastGyro = CluckPublisher.subscribeFI(Kangaroo.node, "kangaroo/" + name + "LastGyro", true);
+        CluckPublisher.publish(Kangaroo.node, name + "Enabled", enabled.asInput());
+
+        Cluck.publish("Kangaroo " + name + "Enabled", enabled.asInput());
+        Cluck.publish("Kangaroo " + name + "HasTarget", hasTarget);
     }
-    
+
     public void enable() {
         enabled.set(true);
     }
-    
+
     public void disable() {
         enabled.set(false);
     }

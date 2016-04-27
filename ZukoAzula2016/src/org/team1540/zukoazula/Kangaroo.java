@@ -10,7 +10,7 @@ import ccre.cluck.tcp.CluckTCPClient;
 
 public class Kangaroo {
     public static final CluckNode node = new CluckNode();
-    public static final CluckTCPClient client = new CluckTCPClient("10.15.40.14", 4001, node, "kangaroo", "robot");
+    public static final CluckTCPClient client = new CluckTCPClient("10.15.40.14:4001", node, "kangaroo", "robot");
 
     public static final KangarooGoalClient forwardCamera = new KangarooGoalClient("forwardCamera");
     public static final KangarooGoalClient upwardCamera = new KangarooGoalClient("upwardCamera");
