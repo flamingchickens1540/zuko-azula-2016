@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import ccre.channel.BooleanInput;
 import ccre.channel.BooleanOutput;
 import ccre.channel.EventInput;
 import ccre.channel.EventOutput;
@@ -37,14 +38,14 @@ public class ZukoAzula implements FRCApplication {
         // Instrumentation.setup();
 
         HeadingSensor.setup();
-//        KangarooTargeting.setup();
+        Kangaroo.setup();
+        KangarooTargeting.setup();
         DriveCode.setup();
         Shooter.setup();
         Portcullis.setup();
         IntakeArm.setup();
         ChallengeBrake.setup();
         VisionConstants.setup();
-        Kangaroo.setup();
         Autonomous.setup();
 
         Cluck.publishRConf("Diagnostics", new RConfable() {
@@ -124,5 +125,15 @@ public class ZukoAzula implements FRCApplication {
             }
         };
         update.setWhen(FRC.inAutonomousMode(), hundred);
+    }
+    
+    public static EventOutput split(BooleanInput cond, EventOutput t, EventOutput f) {
+        return () -> {
+            if (cond.get()) {
+                t.event();
+            } else {
+                f.event();
+            }
+        };
     }
 }
