@@ -9,13 +9,13 @@ import ccre.channel.FloatOutput;
 import ccre.cluck.Cluck;
 
 public class KangarooServer {
-    public static String forwardCameraIp = "10.15.40.12";
-    public static String upwardCameraIp = "10.15.40.11";
+    public static String forwardCameraIp = "10.15.40.13";
+    public static String upwardCameraIp = "10.15.40.12";
     
     public static FloatInput currentGyro;
     
     public static void main(String[] args) throws InterruptedException {
-        Cluck.setupClient("roboRIO-1540-FRC.local", "robot", "kangaroo");
+        //Cluck.setupClient("roboRIO-1540-FRC.local", "robot", "kangaroo");
         Cluck.setupServer(4001);
         
         currentGyro = Cluck.subscribeFI("robot/currentGyro", true);

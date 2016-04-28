@@ -6,6 +6,7 @@ import ccre.channel.FloatInput;
 import ccre.cluck.Cluck;
 import ccre.cluck.CluckNode;
 import ccre.cluck.CluckPublisher;
+import ccre.cluck.any.CluckNullLink;
 import ccre.cluck.tcp.CluckTCPClient;
 
 public class Kangaroo {
@@ -16,6 +17,8 @@ public class Kangaroo {
     public static final KangarooGoalClient upwardCamera = new KangarooGoalClient("upwardCamera");
     
     public static void setup() {
+        CluckNullLink.connect(node, "robot-node", Cluck.getNode(), "kangaroo-node");
+        
         client.start();
         CluckPublisher.publish(node, "Vision Target Red", VisionConstants.targetRed);
         CluckPublisher.publish(node, "Vision Target Blue", VisionConstants.targetBlue);

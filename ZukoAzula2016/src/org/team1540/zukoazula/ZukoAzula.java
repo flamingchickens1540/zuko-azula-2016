@@ -46,7 +46,6 @@ public class ZukoAzula implements FRCApplication {
         Portcullis.setup();
         IntakeArm.setup();
         ChallengeBrake.setup();
-        Kangaroo.setup();
         Autonomous.setup();
 
         Cluck.publishRConf("Diagnostics", new RConfable() {

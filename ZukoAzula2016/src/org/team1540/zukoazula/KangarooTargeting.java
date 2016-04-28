@@ -23,12 +23,13 @@ public class KangarooTargeting {
     public static FloatInput upwardRotationalTarget = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Rotational Target", 0.05f);
     
     public static FloatInput forwardPixelToGyro = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Pixel to Gyro", 0.181f*160.f);
+
     public static FloatInput upwardPixelToGyro = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Pixel to Gyro", 0.181f*160.f);
-    
+
     public static FloatInput forwardRotationallyAlignedThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Rotationally Aligned Threshold", 4.0f);
-    public static FloatInput upwardRotationallyAlignedThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Rotationally Aligned Threshold", 3.0f);
+    public static FloatInput upwardRotationallyAlignedThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Rotationally Aligned Threshold", 3.0f);
     public static FloatInput forwardForwardAlignedThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Forward Aligned Threshold", 0.06f);
-    public static FloatInput upwardForwardAlignedThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Forward Forward Aligned Threshold", 0.1f);
+    public static FloatInput upwardForwardAlignedThreshold = ZukoAzula.mainTuning.getFloat("Kangaroo Upward Forward Aligned Threshold", 0.1f);
     
     public static FloatInput forwardP = ZukoAzula.mainTuning.getFloat("Kangaroo Forward P", 0.25f);
     public static FloatInput forwardI = ZukoAzula.mainTuning.getFloat("Kangaroo Forward I", 0.01f);
@@ -43,6 +44,7 @@ public class KangarooTargeting {
 
     public static StateMachine controlSelector = new StateMachine("none", "none", "forward", "upward");
     
+
     public static BooleanInput rotationallyAligned = controlSelector
             .selectByState(BooleanInput.alwaysFalse, 
                     Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro).absolute().atMost(forwardRotationallyAlignedThreshold).and(Kangaroo.forwardCamera.hasTarget),
@@ -59,11 +61,14 @@ public class KangarooTargeting {
                     forwardForwardTarget,
                     upwardForwardTarget)), 
             forwardP, forwardI, forwardD);
+
+    private static final FloatInput forwardPIDInput = Kangaroo.forwardCamera.lastGyro.plus(Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro));
+    private static final FloatInput upwardPIDInput = Kangaroo.upwardCamera.lastGyro.plus(Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro));
     
     public static PIDController rotationalPidController = new PIDController(HeadingSensor.absoluteYaw, 
             rotationallyAligned.toFloat(controlSelector.selectByState(HeadingSensor.absoluteYaw, 
-                    Kangaroo.forwardCamera.lastGyro.plus(Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro)),
-                    Kangaroo.upwardCamera.lastGyro.plus(Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro))), HeadingSensor.absoluteYaw), 
+                    forwardPIDInput,
+                    upwardPIDInput), HeadingSensor.absoluteYaw), 
             rotationalP, rotationalI, rotationalD);
     
     public static FloatInput leftMotor = Kangaroo.upwardCamera.hasTarget.and(enableAutocorrect).toFloat(0, rotationallyAligned.toFloat(rotationalPidController, forwardPidController.negated()));
@@ -88,8 +93,8 @@ public class KangarooTargeting {
         
         Cluck.publish("Kangaroo Rotational PID Output", (FloatInput) rotationalPidController);
         Cluck.publish("Kangaroo Forward PID Output", (FloatInput) forwardPidController);
-        Cluck.publish("Kangaroo Upward Rotational Gyro Target", Kangaroo.forwardCamera.lastGyro.plus(Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro)));
-        Cluck.publish("Kangaroo Forward Rotational Gyro Target", Kangaroo.upwardCamera.lastGyro.plus(Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro)));
+        Cluck.publish("Kangaroo Forward Rotational Gyro Target", forwardPIDInput);
+        Cluck.publish("Kangaroo Upward Rotational Gyro Target", upwardPIDInput);
         Cluck.publish("Kangaroo Upward Forward Aligned", forwardAligned);
         Cluck.publish("Kangaroo Upward Rotational Aligned", rotationallyAligned);
     }
