@@ -15,7 +15,7 @@ public class CalibrationTool {
         Thread.sleep(1000); // TODO: remove this
         VisionConstantsSub.setup();
         JFrame frame = new JFrame();
-        frame.setSize(500, 600);
+        frame.setSize(1000, 800);
         frame.add(new VisionProcessingPanel());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);

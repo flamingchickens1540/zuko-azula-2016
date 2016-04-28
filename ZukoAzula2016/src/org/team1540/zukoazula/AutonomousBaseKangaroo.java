@@ -22,6 +22,8 @@ public abstract class AutonomousBaseKangaroo extends AutonomousBase {
         Kangaroo.forwardCamera.enabled.set(true);
         float direction = reverseKangaroo.get() ? -1 : 1;
 
+        setIntakeArm(0.05f);
+
         KangarooTargeting.rotationalPidController.integralTotal.set(0);
         KangarooTargeting.forwardPidController.integralTotal.set(0);
 

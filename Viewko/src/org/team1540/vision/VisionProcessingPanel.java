@@ -24,7 +24,7 @@ public class VisionProcessingPanel extends JPanel {
         webcam = new WebcamThread((image) -> {
             current_image = image;
             if (image != null) {
-                setSize(image.getWidth(), image.getHeight() + 200);
+                setSize(image.getWidth() * 2, image.getHeight() * 2 + 200);
             }
             invalidate();
             repaint();
@@ -32,7 +32,7 @@ public class VisionProcessingPanel extends JPanel {
             err = error;
         });
         webcam.setAddress("10.15.40.12");
-        processor = new ImageProcessor(100, 100);
+        processor = new ImageProcessor(100, 100, true);
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -125,6 +125,8 @@ public class VisionProcessingPanel extends JPanel {
                 g.drawString("avg = " + r + " " + this.g + " " + b, 4, img.getHeight() + 28 + 14 * 7);
             }
             g.drawString("debug = " + debug, 4, img.getHeight() + 28 + 14 * 8);
+
+            g.drawImage(processor.readout, 0, img.getHeight() + 28 + 14 * 9, null);
         }
         g.setColor(err == null ? Color.GREEN : Color.RED);
         g.drawString(err == null ? "good" : err, 300, 20);

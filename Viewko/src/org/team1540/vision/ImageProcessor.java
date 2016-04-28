@@ -10,24 +10,24 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import ccre.log.Logger;
-
 public class ImageProcessor {
     private int[] preallocatedImage;
     private boolean[] preallocatedProcessedImage;
     private boolean[] preallocatedAlreadyMarked;
+    public final BufferedImage readout;
 
-    public ImageProcessor(int imgWidth, int imgHeight) {
+    public ImageProcessor(int imgWidth, int imgHeight, boolean haveReadout) {
         preallocatedImage = new int[imgWidth * imgHeight * 3];
         preallocatedProcessedImage = new boolean[imgWidth * imgHeight];
         preallocatedAlreadyMarked = new boolean[imgWidth * imgHeight];
+        readout = haveReadout ? new BufferedImage(imgWidth * 2, imgHeight, BufferedImage.TYPE_BYTE_GRAY) : null;
     }
 
     public ImageProcessor useOrRealloc(int imgWidth, int imgHeight) {
         if (imgWidth * imgHeight == preallocatedAlreadyMarked.length) {
             return this; // can be reused
         } else {
-            return new ImageProcessor(imgWidth, imgHeight);
+            return new ImageProcessor(imgWidth, imgHeight, readout != null);
         }
     }
 
@@ -110,6 +110,17 @@ public class ImageProcessor {
 //            Logger.fine("(I) Exec");
 
             if (similarity > 1.0 - similarityThreshold && (Math.abs((Math.abs(topLeft.distance(topRight) / topLeft.distance(bottomLeft)) + Math.abs(bottomLeft.distance(bottomRight) / topRight.distance(bottomRight)) / 2.0f) - goalAspectRatio) < goalAspectRatioThreshold)) {
+                if (readout != null) {
+                    int[] idata = new int[model.length];
+                    int[] id2 = new int[model.length];
+                    boolean[] bs = shape.getShape();
+                    for (int i = 0; i < idata.length; i++) {
+                        idata[i] = model[i] ? 255 : 0;
+                        id2[i] = bs[i] ? 255 : 0;
+                    }
+                    readout.getRaster().setPixels(0, 0, readout.getWidth() / 2, readout.getHeight(), idata);
+                    readout.getRaster().setPixels(readout.getWidth() / 2, 0, readout.getWidth() / 2, readout.getHeight(), id2);
+                }
                 goals.add(new Goal(topLeft, topRight, bottomRight, bottomLeft, shape));
             }
 //            Logger.fine("(J) Finish " + shape);
@@ -229,7 +240,13 @@ public class ImageProcessor {
 
         for (int i = 0; i < image.length; ++i) {
             if (!alreadyMarked[i]) {
-                Shape shape = floodfill(image, width, i % width, i / width);
+                Shape shape;
+                try {
+                    shape = floodfill(image, width, i % width, i / width);
+                } catch (OutOfMemoryError err) {
+                    System.out.println("failed for shape total: " + objects.size() + " plus one");
+                    throw err;
+                }
                 if (shape != null) {
                     objects.add(shape);
                     for (int j = 0; j < alreadyMarked.length; ++j)

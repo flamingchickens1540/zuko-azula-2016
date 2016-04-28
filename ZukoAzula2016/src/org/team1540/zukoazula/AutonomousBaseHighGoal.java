@@ -13,7 +13,7 @@ import ccre.instinct.AutonomousModeOverException;
 import ccre.log.Logger;
 
 public abstract class AutonomousBaseHighGoal extends AutonomousBase {
-    private static ImageProcessor processor = new ImageProcessor(100, 100);
+    private static ImageProcessor processor = new ImageProcessor(100, 100, false);
     private static final Object swapLock = new Object();
     private static volatile BufferedImage swap;
     private static String lastError;

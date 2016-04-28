@@ -21,7 +21,7 @@ public class KangarooGoalServer {
     private volatile BufferedImage swap;
     private final Object swapLock = new Object();
     private final Object processingLock = new Object();
-    private ImageProcessor processor = new ImageProcessor(320, 240);
+    private ImageProcessor processor = new ImageProcessor(320, 240, false);
     private String lastError;
     private final String webcamAddress;
     private Thread processingThread;
