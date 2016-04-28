@@ -26,12 +26,4 @@ public class KangarooGoalClient {
         Cluck.publish("Kangaroo " + name + "HasTarget", hasTarget);
         Cluck.publish("Kangaroo " + name + "LastGyro", lastGyro);
     }
-
-    public void enable() {
-        enabled.set(true);
-    }
-
-    public void disable() {
-        enabled.set(false);
-    }
 }

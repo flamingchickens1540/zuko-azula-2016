@@ -49,11 +49,14 @@ public class KangarooTargeting {
             .selectByState(BooleanInput.alwaysFalse, 
                     Kangaroo.forwardCamera.centerX.minus(forwardRotationalTarget).multipliedBy(forwardPixelToGyro).absolute().atMost(forwardRotationallyAlignedThreshold).and(Kangaroo.forwardCamera.hasTarget),
                     Kangaroo.upwardCamera.centerX.minus(upwardRotationalTarget).multipliedBy(upwardPixelToGyro).absolute().atMost(upwardRotationallyAlignedThreshold).and(Kangaroo.upwardCamera.hasTarget));
+
+    private static final BooleanInput forwardAlignedForwardBackward = Kangaroo.forwardCamera.centerY.plus(forwardForwardTarget).absolute().atMost(forwardForwardAlignedThreshold).and(Kangaroo.forwardCamera.hasTarget);
+    private static final BooleanInput upwardAlignedForwardBackward = Kangaroo.upwardCamera.centerY.plus(upwardForwardTarget).absolute().atMost(upwardForwardAlignedThreshold).and(Kangaroo.upwardCamera.hasTarget);
     
     public static BooleanInput forwardAligned = controlSelector
             .selectByState(BooleanInput.alwaysFalse, 
-                    Kangaroo.forwardCamera.centerY.plus(forwardForwardTarget).absolute().atMost(forwardForwardAlignedThreshold).and(Kangaroo.forwardCamera.hasTarget), // plus is intentional, camera y is reversed
-                    Kangaroo.forwardCamera.centerY.plus(upwardForwardTarget).absolute().atMost(upwardForwardAlignedThreshold)).and(Kangaroo.upwardCamera.hasTarget);
+                    forwardAlignedForwardBackward, // plus is intentional, camera y is reversed
+                    upwardAlignedForwardBackward);
     
     public static PIDController forwardPidController = new PIDController(controlSelector.selectByState(FloatInput.zero, Kangaroo.forwardCamera.centerY, Kangaroo.upwardCamera.centerY), 
             rotationallyAligned.toFloat(controlSelector.selectByState(FloatInput.zero, Kangaroo.forwardCamera.centerY, Kangaroo.upwardCamera.centerY),
@@ -75,6 +78,9 @@ public class KangarooTargeting {
     public static FloatInput rightMotor = Kangaroo.upwardCamera.hasTarget.and(enableAutocorrect).toFloat(0, rotationallyAligned.toFloat(rotationalPidController.negated(), forwardPidController.negated()));
     
     public static void setup() {
+        Kangaroo.upwardCamera.enabled.setTrueWhen(FRC.startTele);
+        Kangaroo.upwardCamera.enabled.setFalseWhen(FRC.startDisabled);
+        
         rotationalPidController.updateWhen(FRC.duringAuto.and(Kangaroo.upwardCamera.hasTarget.or(Kangaroo.forwardCamera.hasTarget))
                 .or(FRC.duringTele.and(Kangaroo.upwardCamera.hasTarget).and(enableAutocorrect)).andNot(rotationallyAligned));
         forwardPidController.updateWhen(FRC.duringAuto.and(Kangaroo.upwardCamera.hasTarget.or(Kangaroo.forwardCamera.hasTarget))
@@ -96,6 +102,11 @@ public class KangarooTargeting {
         Cluck.publish("Kangaroo Forward Rotational Gyro Target", forwardPIDInput);
         Cluck.publish("Kangaroo Upward Rotational Gyro Target", upwardPIDInput);
         Cluck.publish("Kangaroo Upward Forward Aligned", forwardAligned);
+        Cluck.publish("Kangaroo ForwardBackward Aligned for Upward Cam", upwardAlignedForwardBackward);
+        Cluck.publish("Kangaroo ForwardBackward Aligned for Forward Cam", forwardAlignedForwardBackward);
         Cluck.publish("Kangaroo Upward Rotational Aligned", rotationallyAligned);
+        Cluck.publish("Kangaroo None Set State", controlSelector.getStateSetEvent("none"));
+        Cluck.publish("Kangaroo Forward Set State", controlSelector.getStateSetEvent("forward"));
+        Cluck.publish("Kangaroo Upward Set State", controlSelector.getStateSetEvent("upward"));
     }
 }
