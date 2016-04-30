@@ -15,6 +15,9 @@ public class AutonomousModeRamparts extends AutonomousBase {
     @Tunable(1f)
     private FloatInput drivingSpeed;
 
+    @Tunable(0.7f)
+    private FloatInput extraDrive;
+
     public AutonomousModeRamparts() {
         super("Drive Over Ramparts");
     }
@@ -22,5 +25,6 @@ public class AutonomousModeRamparts extends AutonomousBase {
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
+        driveForTime(extraDrive.get(), drivingSpeed.get());
     }
 }

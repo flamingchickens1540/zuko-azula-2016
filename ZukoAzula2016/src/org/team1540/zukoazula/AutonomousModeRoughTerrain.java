@@ -18,6 +18,9 @@ public class AutonomousModeRoughTerrain extends AutonomousBase {
     @Tunable(0.5f)
     private FloatInput drivingSpeed;
 
+    @Tunable(1f)
+    private FloatInput extraDrive;
+
     public AutonomousModeRoughTerrain() {
         super("Drive Over Rough Terrain");
     }
@@ -25,5 +28,6 @@ public class AutonomousModeRoughTerrain extends AutonomousBase {
     @Override
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
+        driveForTime(extraDrive.get(), drivingSpeed.get());
     }
 }

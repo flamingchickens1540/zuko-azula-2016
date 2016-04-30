@@ -15,6 +15,9 @@ public class AutonomousModeMoatShoot extends AutonomousBaseKangaroo {
     @Tunable(1f)
     private FloatInput drivingSpeed;
 
+    @Tunable(0.7f)
+    private FloatInput extraDrive;
+
     public AutonomousModeMoatShoot() {
         super("Drive Over Moat and Shoot");
     }
@@ -23,6 +26,7 @@ public class AutonomousModeMoatShoot extends AutonomousBaseKangaroo {
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         float startAngle = HeadingSensor.absoluteYaw.get();
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
+        driveForTime(extraDrive.get(), drivingSpeed.get());
         turnAngle(startAngle - HeadingSensor.absoluteYaw.get() - 45, true);
         runKangarooAutonomous();
     }

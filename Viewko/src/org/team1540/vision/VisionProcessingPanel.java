@@ -24,7 +24,7 @@ public class VisionProcessingPanel extends JPanel {
         webcam = new WebcamThread((image) -> {
             current_image = image;
             if (image != null) {
-                setSize(image.getWidth() * 2, image.getHeight() * 2 + 200);
+                setSize(image.getWidth() * 3, image.getHeight() * 2 + 200);
             }
             invalidate();
             repaint();
@@ -126,7 +126,7 @@ public class VisionProcessingPanel extends JPanel {
             }
             g.drawString("debug = " + debug, 4, img.getHeight() + 28 + 14 * 8);
 
-            g.drawImage(processor.readout, 0, img.getHeight() + 28 + 14 * 9, null);
+            g.drawImage(processor.readout, img.getWidth(), 0, null);
         }
         g.setColor(err == null ? Color.GREEN : Color.RED);
         g.drawString(err == null ? "good" : err, 300, 20);

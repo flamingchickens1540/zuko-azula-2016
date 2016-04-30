@@ -15,7 +15,7 @@ public class ChallengeBrake {
 
     // needs to be this for Zuko; the reverse for Azula.
     private static final BooleanCell servoState = new BooleanCell();
-    public static final BooleanInput driveBrake = servoState;
+    public static final BooleanInput driveBrake = servoState.and(ZukoAzula.mainTuning.getBoolean("Challenge Brake Disable Driving", false));
 
     public static void setup() {
         servoState.setTrueWhen(composedTriggers.onPress());

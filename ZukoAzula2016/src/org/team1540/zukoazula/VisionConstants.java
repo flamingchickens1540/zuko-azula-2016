@@ -45,17 +45,17 @@ public class VisionConstants {
     public static final FloatInput minuteRotationAngle2 = ZukoAzula.mainTuning.getFloat("Vision Minute Rotation Angle Two", 10.0f);
 
     public static void setup() {
-        FloatIO targetRed = ZukoAzula.mainTuning.getFloat("Vision Target Red", 205);
+        FloatIO targetRed = ZukoAzula.mainTuning.getFloat("Vision Target Red", 255);
         VisionConstants.targetRed = targetRed;
-        FloatIO targetBlue = ZukoAzula.mainTuning.getFloat("Vision Target Blue", 20);
-        VisionConstants.targetBlue = targetBlue;
-        FloatIO targetGreen = ZukoAzula.mainTuning.getFloat("Vision Target Green", 10);
+        FloatIO targetGreen = ZukoAzula.mainTuning.getFloat("Vision Target Green", 160);
         VisionConstants.targetGreen = targetGreen;
-        FloatIO thresholdRed = ZukoAzula.mainTuning.getFloat("Vision Threshold Red", 70);
+        FloatIO targetBlue = ZukoAzula.mainTuning.getFloat("Vision Target Blue", 119);
+        VisionConstants.targetBlue = targetBlue;
+        FloatIO thresholdRed = ZukoAzula.mainTuning.getFloat("Vision Threshold Red", 150);
         VisionConstants.thresholdRed = thresholdRed;
-        FloatIO thresholdGreen = ZukoAzula.mainTuning.getFloat("Vision Threshold Green", 70);
+        FloatIO thresholdGreen = ZukoAzula.mainTuning.getFloat("Vision Threshold Green", 84);
         VisionConstants.thresholdGreen = thresholdGreen;
-        FloatIO thresholdBlue = ZukoAzula.mainTuning.getFloat("Vision Threshold Blue", 20);
+        FloatIO thresholdBlue = ZukoAzula.mainTuning.getFloat("Vision Threshold Blue", 130);
         VisionConstants.thresholdBlue = thresholdBlue;
         FloatIO[] ios = new FloatIO[] { targetRed, targetBlue, targetGreen, thresholdRed, thresholdGreen, thresholdBlue };
         StorageSegment segment = ZukoAzula.mainTuning.getSegment();

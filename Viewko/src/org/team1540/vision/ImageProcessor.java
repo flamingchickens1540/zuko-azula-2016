@@ -1,5 +1,7 @@
 package org.team1540.vision;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
@@ -13,6 +15,8 @@ import java.util.Queue;
 public class ImageProcessor {
     private int[] preallocatedImage;
     private boolean[] preallocatedProcessedImage;
+    public final BufferedImage model;
+    public final Graphics2D modelG;
     private boolean[] preallocatedAlreadyMarked;
     public final BufferedImage readout;
 
@@ -20,7 +24,9 @@ public class ImageProcessor {
         preallocatedImage = new int[imgWidth * imgHeight * 3];
         preallocatedProcessedImage = new boolean[imgWidth * imgHeight];
         preallocatedAlreadyMarked = new boolean[imgWidth * imgHeight];
-        readout = haveReadout ? new BufferedImage(imgWidth * 2, imgHeight, BufferedImage.TYPE_BYTE_GRAY) : null;
+        readout = haveReadout ? new BufferedImage(imgWidth * 2, imgHeight * 2, BufferedImage.TYPE_BYTE_GRAY) : null;
+        model = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_BYTE_BINARY);
+        modelG = model.createGraphics();
     }
 
     public ImageProcessor useOrRealloc(int imgWidth, int imgHeight) {
@@ -35,46 +41,39 @@ public class ImageProcessor {
         Raster raster = image.getRaster();
         int width = raster.getWidth();
         int height = raster.getHeight();
-        int[] pixels = raster.getPixels(0, 0, width, height, preallocatedImage); 
+        int[] pixels = raster.getPixels(0, 0, width, height, preallocatedImage);
         boolean[] filtered = preallocatedProcessedImage;
-        
-//        Logger.fine("(A) Exec");
+
+        int[] pixleft = readout == null ? null : new int[readout.getWidth() * readout.getHeight() / 4];
+        int[] pixright = readout == null ? null : new int[pixleft.length];
+        int[] pixdown = readout == null ? null : new int[pixleft.length];
 
         for (int i = 0; i < width * height; ++i) {
             // if the given pixel falls within the color threshold
             if (Math.abs(pixels[i * 3 + 0] - redTarget) < redThreshold && Math.abs(pixels[i * 3 + 1] - greenTarget) < greenThreshold && Math.abs(pixels[i * 3 + 2] - blueTarget) < blueThreshold) {
                 filtered[i] = true;
+                if (pixdown != null) {
+                    pixdown[i] = 255;
+                }
             } else {
                 // this is needed because image is not reallocated and
                 // filled with the value 'false' each step
                 filtered[i] = false;
             }
         }
-        
-//        Logger.fine("(B) Exec");
 
         List<Goal> goals = new ArrayList<>();
 
         // partition the image into a list of separate shapes
         List<Shape> shapes = partitionShapes(filtered, width);
-        
-//        Logger.fine("(C) Exec");
-        /*
-         * System.out.println("Shapes: " + shapes.size()); System.out.println(
-         * "Shapes: " + shapes); if (shapes.size() != 0) { System.out.println(
-         * "Shapes: " + shapes.get(0).getCount()); }
-         */
+
         shapes.removeIf(x -> x.getCount() < minGoalPixelCount);
-//        Logger.fine("(D) Exec of " + shapes.size());
         for (Shape shape : shapes) {
-//            Logger.fine("(E) Begin of " + shape);
             List<Point> convexHull = fastConvexHull(shapeToPoints(shape));
-            
-//            Logger.fine("(F) Exec");
 
             // find best fit (for a goal)
-            Point topRight = convexHull.get(0); // a shape must have at least
-                                                // one point
+            // a shape must have at least one point
+            Point topRight = convexHull.get(0);
             Point topLeft = convexHull.get(0);
             Point bottomRight = convexHull.get(0);
             Point bottomLeft = convexHull.get(0);
@@ -96,37 +95,38 @@ public class ImageProcessor {
                     topRight = p;
                 }
             }
-            
-//            Logger.fine("(G) Exec");
 
-            boolean[] model = preallocatedProcessedImage;
-            Arrays.fill(model, false);
+            this.modelG.setColor(Color.BLACK);
+            this.modelG.fillRect(0, 0, this.model.getWidth(), this.model.getHeight());
             // generate a model goal and compare it to what the camera sees
-            generateModelGoal(model, width, height, topLeft, bottomLeft, topRight, bottomRight);
-            
-//            Logger.fine("(H) Exec");
-            float similarity = compareImages(shape.getShape(), model);
-            
-//            Logger.fine("(I) Exec");
+            generateModelGoal(width, height, topLeft, bottomLeft, topRight, bottomRight);
+
+            int[] idata = new int[model.getWidth() * model.getHeight()];
+            model.getRaster().getPixels(0, 0, model.getWidth(), model.getHeight(), idata);
+            float similarity = compareImages(shape.getShape(), idata);
+            //System.out.println("SIMILARITY: " + similarity);
 
             if (similarity > 1.0 - similarityThreshold && (Math.abs((Math.abs(topLeft.distance(topRight) / topLeft.distance(bottomLeft)) + Math.abs(bottomLeft.distance(bottomRight) / topRight.distance(bottomRight)) / 2.0f) - goalAspectRatio) < goalAspectRatioThreshold)) {
                 if (readout != null) {
-                    int[] idata = new int[model.length];
-                    int[] id2 = new int[model.length];
                     boolean[] bs = shape.getShape();
                     for (int i = 0; i < idata.length; i++) {
-                        idata[i] = model[i] ? 255 : 0;
-                        id2[i] = bs[i] ? 255 : 0;
+                        if (bs[i]) {
+                            pixright[i] = 255;
+                        }
+                        if (idata[i] != 0) {
+                            pixleft[i] = 255;
+                        }
                     }
-                    readout.getRaster().setPixels(0, 0, readout.getWidth() / 2, readout.getHeight(), idata);
-                    readout.getRaster().setPixels(readout.getWidth() / 2, 0, readout.getWidth() / 2, readout.getHeight(), id2);
                 }
                 goals.add(new Goal(topLeft, topRight, bottomRight, bottomLeft, shape));
             }
-//            Logger.fine("(J) Finish " + shape);
         }
-        
-//        Logger.fine("(K) Done");
+
+        if (readout != null) {
+            readout.getRaster().setPixels(0, 0, readout.getWidth() / 2, readout.getHeight() / 2, pixleft);
+            readout.getRaster().setPixels(readout.getWidth() / 2, 0, readout.getWidth() / 2, readout.getHeight() / 2, pixright);
+            readout.getRaster().setPixels(0, readout.getHeight() / 2, readout.getWidth() / 2, readout.getHeight() / 2, pixdown);
+        }
 
         return goals;
     }
@@ -141,26 +141,26 @@ public class ImageProcessor {
         return points;
     }
 
-    private float compareImages(boolean[] a, boolean[] b) {
-        // returns 1.0 for perfect match and 0.0 for no match at all
-        if (a.length != b.length)
+    private float compareImages(boolean[] check, int[] expected) {
+        // returns 1.0 for perfect match, 0.0 for no match at all, and negative
+        // numbers for terrible matches
+        if (check.length != expected.length) {
             return 0.0f;
-
-        int total = 0, match = 0;
-        for (int i = 0; i < a.length; ++i) {
-            total++;
-            if (!(a[i] ^ b[i]))
-                match++;
         }
 
-        return (float) match / (float) total;
+        int wrong = 0, total = 0;
+        for (int i = 0; i < check.length; ++i) {
+            if (expected[i] != 0) {
+                total++;
+            }
+            if (check[i] != (expected[i] != 0)) {
+                wrong++;
+            }
+        }
+        return 1 - (wrong / (float) total);
     }
 
-    private void generateModelGoal(boolean[] model, int width, int height, Point tl, Point bl, Point tr, Point br) {
-        if (model.length != width * height) {
-            throw new IllegalArgumentException();
-        }
-
+    private void generateModelGoal(int width, int height, Point tl, Point bl, Point tr, Point br) {
         int x0 = (int) ((tl.x * 9 + tr.x) / 10.0f);
         int y0 = (int) ((tl.y * 9 + tr.y) / 10.0f);
 
@@ -173,64 +173,8 @@ public class ImageProcessor {
         int x3 = (int) (x0 + (bl.x - tl.x) * (5.8f / 7.f));
         int y3 = (int) (y0 + (bl.y - tl.y) * (5.8f / 7.f));
 
-        writeLine(model, width, tl.x, tl.y, x0, y0);
-        writeLine(model, width, x1, y1, tr.x, tr.y);
-        writeLine(model, width, tr.x, tr.y, br.x, br.y);
-        writeLine(model, width, br.x, br.y, bl.x, bl.y);
-        writeLine(model, width, bl.x, bl.y, tl.x, tl.y);
-        // writeLine(model, width, x0, y0, x1, y1);
-        writeLine(model, width, x1, y1, x2, y2);
-        writeLine(model, width, x2, y2, x3, y3);
-        writeLine(model, width, x3, y3, x0, y0);
-        writeFill(model, width, tl.x + 1, tl.y + 1);
-    }
-
-    private void writeLine(boolean[] dst, int width, int x0, int y0, int x1, int y1) {
-        int dx = Math.abs(x1 - x0);
-        int dy = Math.abs(y1 - y0);
-
-        int sx = x0 < x1 ? 1 : -1;
-        int sy = y0 < y1 ? 1 : -1;
-
-        int err = dx - dy;
-        int e2;
-
-        while (true) {
-            dst[y0 * width + x0] = true;
-
-            if (x0 == x1 && y0 == y1)
-                break;
-
-            e2 = 2 * err;
-            if (e2 > -dy) {
-                err = err - dy;
-                x0 = x0 + sx;
-            }
-
-            if (e2 < dx) {
-                err = err + dx;
-                y0 = y0 + sy;
-            }
-        }
-    }
-
-    private void writeFill(boolean[] dst, int width, int x, int y) {
-        if (x + y * width >= dst.length)
-            return;
-        if (dst[x + y * width])
-            return;
-        Queue<Integer> toCheck = new LinkedList<>();
-        toCheck.add(x + y * width);
-        while (!toCheck.isEmpty()) {
-            int i = toCheck.remove();
-            if (i >= 0 && i < dst.length && !dst[i]) {
-                dst[i] = true;
-                toCheck.add(i + 1);
-                toCheck.add(i - 1);
-                toCheck.add(i + width);
-                toCheck.add(i - width);
-            }
-        }
+        this.modelG.setColor(Color.WHITE);
+        this.modelG.fillPolygon(new int[] { tl.x, bl.x, br.x, tr.x, x1, x2, x3, x0 }, new int[] { tl.y, bl.y, br.y, tr.y, y1, y2, y3, y0 }, 8);
     }
 
     public List<Shape> partitionShapes(boolean[] image, int width) {

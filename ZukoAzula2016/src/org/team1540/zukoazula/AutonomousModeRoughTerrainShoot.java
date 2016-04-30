@@ -18,6 +18,9 @@ public class AutonomousModeRoughTerrainShoot extends AutonomousBaseKangaroo {
     @Tunable(0.5f)
     private FloatInput drivingSpeed;
 
+    @Tunable(1f)
+    private FloatInput extraDrive;
+
     public AutonomousModeRoughTerrainShoot() {
         super("Drive Over Rough Terrain and Shoot");
     }
@@ -26,6 +29,7 @@ public class AutonomousModeRoughTerrainShoot extends AutonomousBaseKangaroo {
     protected void runAutonomous() throws InterruptedException, AutonomousModeOverException {
         float startAngle = HeadingSensor.absoluteYaw.get();
         driveUntilPitchOrTimeout(drivingSpeed.get(), desiredPitch.get(), timeout.get());
+        driveForTime(extraDrive.get(), drivingSpeed.get());
         turnAngle(startAngle - HeadingSensor.absoluteYaw.get() - 45, true);
         runKangarooAutonomous();
     }

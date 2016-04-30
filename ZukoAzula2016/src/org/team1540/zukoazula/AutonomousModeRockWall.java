@@ -12,10 +12,10 @@ public class AutonomousModeRockWall extends AutonomousBase {
     @Tunable(3f)
     private FloatInput timeout;
 
-    @Tunable(.2f)
+    @Tunable(.5f)
     private FloatInput afterTime;
 
-    @Tunable(0.9f)
+    @Tunable(0.8f)
     private FloatInput drivingSpeed;
 
     public AutonomousModeRockWall() {
